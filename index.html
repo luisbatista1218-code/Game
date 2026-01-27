@@ -2,703 +2,780 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Simulador de Carro 360° - Drone View</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador VAZ 2108 - WebGL</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
         }
-
+        
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: white;
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
             overflow: hidden;
             height: 100vh;
             touch-action: none;
         }
-
+        
         #gameContainer {
-            display: flex;
-            flex-direction: column;
+            width: 100%;
             height: 100vh;
-            padding: 10px;
-            gap: 10px;
-        }
-
-        /* TOP BAR - Informações do jogo */
-        #topBar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 12px 20px;
-            border-radius: 15px;
-            border: 2px solid #00ff88;
-            backdrop-filter: blur(10px);
-        }
-
-        .carInfo {
-            display: flex;
-            gap: 25px;
-        }
-
-        .infoItem {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .infoLabel {
-            font-size: 12px;
-            color: #88ffcc;
-            margin-bottom: 4px;
-        }
-
-        .infoValue {
-            font-size: 24px;
-            font-weight: bold;
-            color: white;
-        }
-
-        .unit {
-            font-size: 12px;
-            color: #aaa;
-            margin-left: 2px;
-        }
-
-        /* ÁREA DO JOGO - Onde ficaria a visualização 3D */
-        #gameArea {
-            flex: 1;
             position: relative;
-            background: linear-gradient(45deg, #2d5a27 0%, #1e3c1e 100%);
-            border-radius: 15px;
-            overflow: hidden;
-            border: 3px solid #333;
-            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
         }
-
-        #unityContainer {
+        
+        #scene3d {
             width: 100%;
             height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 18px;
+            display: block;
         }
-
-        #mapView {
+        
+        #uiOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        /* Painel do VAZ 2108 (estilo russo antigo) */
+        #dashboard {
             position: absolute;
             bottom: 20px;
-            right: 20px;
-            width: 200px;
-            height: 200px;
-            background: rgba(0, 20, 40, 0.9);
-            border: 2px solid #00aaff;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 30, 30, 0.9);
+            border: 3px solid #8B0000;
             border-radius: 10px;
-            overflow: hidden;
-            z-index: 10;
+            padding: 15px;
+            min-width: 300px;
+            backdrop-filter: blur(5px);
         }
-
-        #miniMap {
+        
+        .dashboard-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .gauge {
+            text-align: center;
+            flex: 1;
+            margin: 0 10px;
+        }
+        
+        .gauge-label {
+            font-size: 12px;
+            color: #ff4444;
+            margin-bottom: 5px;
+        }
+        
+        .gauge-value {
+            font-size: 24px;
+            font-family: 'Digital-7', monospace;
+            color: #ff0000;
+            background: #111;
+            padding: 5px 10px;
+            border: 2px solid #444;
+            border-radius: 5px;
+        }
+        
+        .unit {
+            font-size: 10px;
+            color: #888;
+        }
+        
+        /* Controles touch */
+        #touchControls {
+            position: absolute;
             width: 100%;
             height: 100%;
-            background: #2a5c3d;
+            pointer-events: auto;
         }
-
-        /* CONTROLES DE CÂMERA */
-        #cameraControls {
+        
+        .touch-zone {
+            position: absolute;
+            background: rgba(255, 0, 0, 0.1);
+            border: 2px dashed rgba(255, 0, 0, 0.3);
+        }
+        
+        #steerZone {
+            left: 0;
+            width: 40%;
+            height: 100%;
+        }
+        
+        #acceleratorZone {
+            right: 0;
+            bottom: 0;
+            width: 30%;
+            height: 40%;
+            background: rgba(0, 255, 0, 0.1);
+            border-color: rgba(0, 255, 0, 0.3);
+        }
+        
+        #brakeZone {
+            right: 0;
+            top: 0;
+            width: 30%;
+            height: 40%;
+            background: rgba(255, 0, 0, 0.1);
+            border-color: rgba(255, 0, 0, 0.3);
+        }
+        
+        /* Indicador de câmera */
+        #cameraIndicator {
             position: absolute;
             top: 20px;
             left: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 10;
-        }
-
-        .cameraBtn {
-            width: 60px;
-            height: 60px;
             background: rgba(0, 0, 0, 0.7);
-            border: 2px solid #ffaa00;
-            border-radius: 50%;
-            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: 2px solid #8B0000;
+        }
+        
+        /* Título estilo russo */
+        #title {
+            position: absolute;
+            top: 20px;
+            right: 20px;
             font-size: 24px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            backdrop-filter: blur(5px);
+            color: #ff0000;
+            text-shadow: 0 0 10px #ff0000;
+            font-family: 'Times New Roman', serif;
         }
-
-        .cameraBtn:hover, .cameraBtn.active {
-            background: rgba(255, 170, 0, 0.3);
-            transform: scale(1.1);
-        }
-
-        /* CONTROLES TOUCH */
-        #controlsContainer {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            height: 180px;
-        }
-
-        #steeringControl {
-            flex: 1;
-            position: relative;
-            background: rgba(0, 0, 0, 0.6);
-            border-radius: 20px;
-            border: 2px solid #ff4444;
-            touch-action: none;
-        }
-
-        #steeringWheel {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 120px;
-            height: 120px;
-            transform: translate(-50%, -50%);
-            background: radial-gradient(circle, #333 0%, #000 100%);
-            border: 8px solid #666;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #ff4444;
-            font-size: 40px;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
-        }
-
-        #pedalsControl {
-            width: 150px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            background: rgba(0, 0, 0, 0.6);
-            border-radius: 20px;
-            border: 2px solid #44ff44;
-            padding: 20px;
-        }
-
-        .pedal {
-            height: 70px;
-            background: linear-gradient(to bottom, #222 0%, #000 100%);
-            border-radius: 10px;
-            border: 3px solid #444;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
-            touch-action: none;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .pedal:active {
-            background: linear-gradient(to bottom, #44aa44 0%, #228822 100%);
-            border-color: #88ff88;
-        }
-
-        #accelerator {
-            border-color: #44ff44;
-        }
-
-        #brake {
-            border-color: #ff4444;
-        }
-
-        .pedalLabel {
-            position: absolute;
-            top: 5px;
-            left: 10px;
-            font-size: 12px;
-            color: #aaa;
-        }
-
-        /* MENU INFERIOR */
-        #bottomMenu {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px 20px;
-            border-radius: 15px;
-            border: 2px solid #aa44ff;
-        }
-
-        .menuBtn {
-            padding: 12px 25px;
-            background: linear-gradient(45deg, #6a11cb 0%, #2575fc 100%);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .menuBtn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
-        }
-
-        /* STATUS DO JOGO */
-        #gameStatus {
+        
+        /* Mensagem de carregamento */
+        #loading {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
-            padding: 30px;
-            border-radius: 20px;
-            border: 3px solid #ffaa00;
             text-align: center;
-            z-index: 100;
-            display: none;
+            font-size: 20px;
+            color: #ff0000;
         }
-
-        /* ANIMAÇÃO DO VOLANTE */
-        @keyframes steerLeft {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(-180deg); }
+        
+        .vaz-logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ff0000;
         }
-
-        @keyframes steerRight {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(180deg); }
-        }
-
-        /* RESPONSIVIDADE */
+        
+        /* Responsivo */
         @media (max-width: 768px) {
-            #controlsContainer {
-                height: 150px;
+            #dashboard {
+                width: 90%;
+                padding: 10px;
             }
             
-            #steeringWheel {
-                width: 100px;
-                height: 100px;
-                font-size: 30px;
-            }
-            
-            .cameraBtn {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-            }
-            
-            .infoValue {
-                font-size: 20px;
+            .gauge-value {
+                font-size: 18px;
+                padding: 3px 6px;
             }
         }
     </style>
 </head>
 <body>
     <div id="gameContainer">
-        <!-- TOP BAR - Informações do carro -->
-        <div id="topBar">
-            <div class="carInfo">
-                <div class="infoItem">
-                    <div class="infoLabel">VELOCIDADE</div>
-                    <div class="infoValue">0<span class="unit">km/h</span></div>
-                </div>
-                <div class="infoItem">
-                    <div class="infoLabel">MARCHA</div>
-                    <div class="infoValue">N<span class="unit"></span></div>
-                </div>
-                <div class="infoItem">
-                    <div class="infoLabel">RPM</div>
-                    <div class="infoValue">0<span class="unit">x1000</span></div>
-                </div>
-                <div class="infoItem">
-                    <div class="infoLabel">CÂMERA</div>
-                    <div class="infoValue" id="cameraMode">DRONE</div>
-                </div>
-            </div>
+        <canvas id="scene3d"></canvas>
+        
+        <div id="uiOverlay">
+            <div id="title">ВАЗ 2108<br/>СИМУЛЯТОР</div>
             
-            <div class="carInfo">
-                <div class="infoItem">
-                    <div class="infoLabel">DISTÂNCIA</div>
-                    <div class="infoValue">0<span class="unit">km</span></div>
+            <div id="dashboard">
+                <div class="dashboard-row">
+                    <div class="gauge">
+                        <div class="gauge-label">СКОРОСТЬ</div>
+                        <div class="gauge-value" id="speed">0 <span class="unit">км/ч</span></div>
+                    </div>
+                    <div class="gauge">
+                        <div class="gauge-label">ОБОРОТЫ</div>
+                        <div class="gauge-value" id="rpm">0 <span class="unit">об/мин</span></div>
+                    </div>
                 </div>
-                <div class="infoItem">
-                    <div class="infoLabel">TEMPO</div>
-                    <div class="infoValue">00:00<span class="unit"></span></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ÁREA PRINCIPAL DO JOGO -->
-        <div id="gameArea">
-            <!-- Aqui iria o WebGL do Unity -->
-            <div id="unityContainer">
-                <div style="text-align: center;">
-                    <div style="font-size: 48px; margin-bottom: 20px;">🚗</div>
-                    <h2>SIMULADOR 360° REALÍSTICO</h2>
-                    <p>Área montanhosa de 50km² com pistas sinuosas</p>
-                    <p style="margin-top: 20px; color: #ffaa00;">[AREA PARA UNITY WEBGL]</p>
-                    <p>Controles touch habilitados para rotação 360°</p>
-                </div>
-            </div>
-
-            <!-- Controles de Câmera -->
-            <div id="cameraControls">
-                <div class="cameraBtn active" onclick="changeCamera('drone')" title="Vista Drone">
-                    🚁
-                </div>
-                <div class="cameraBtn" onclick="changeCamera('driver')" title="Vista Motorista">
-                    👁️
-                </div>
-                <div class="cameraBtn" onclick="changeCamera('hood')" title="Vista Capô">
-                    🚗
-                </div>
-                <div class="cameraBtn" onclick="toggle360()" title="Modo 360°">
-                    🔄
-                </div>
-            </div>
-
-            <!-- Mini Mapa -->
-            <div id="mapView">
-                <div id="miniMap">
-                    <!-- Mapa seria gerado aqui -->
-                    <div style="width: 100%; height: 100%; position: relative;">
-                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                                    font-size: 12px; color: #88ff88; text-align: center;">
-                            MAPA 50km²<br/>
-                            ⛰️ MONTANHAS<br/>
-                            🛣️ PISTAS<br/>
-                            🏁 CHECKPOINTS
-                        </div>
+                <div class="dashboard-row">
+                    <div class="gauge">
+                        <div class="gauge-label">ПЕРЕДАЧА</div>
+                        <div class="gauge-value" id="gear">N</div>
+                    </div>
+                    <div class="gauge">
+                        <div class="gauge-label">ТОПЛИВО</div>
+                        <div class="gauge-value" id="fuel">100 <span class="unit">%</span></div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- CONTROLES TOUCH -->
-        <div id="controlsContainer">
-            <div id="steeringControl" ontouchstart="startSteering(event)" ontouchmove="steerCar(event)" ontouchend="endSteering()">
-                <div id="steeringWheel">🎮</div>
-            </div>
             
-            <div id="pedalsControl">
-                <div class="pedal" id="accelerator" ontouchstart="accelerate()" ontouchend="releasePedals()">
-                    <div class="pedalLabel">ACELERADOR</div>
-                    ⬆️
-                </div>
-                <div class="pedal" id="brake" ontouchstart="brake()" ontouchend="releasePedals()">
-                    <div class="pedalLabel">FREIO</div>
-                    ⬇️
-                </div>
+            <div id="cameraIndicator">
+                Камера: <span id="camMode">Водитель</span>
             </div>
         </div>
-
-        <!-- MENU INFERIOR -->
-        <div id="bottomMenu">
-            <button class="menuBtn" onclick="toggleMenu()">MENU</button>
-            <div style="display: flex; gap: 10px;">
-                <button class="menuBtn" onclick="changeWeather()">🌦️ CLIMA</button>
-                <button class="menuBtn" onclick="changeTime()">🌓 HORÁRIO</button>
-                <button class="menuBtn" onclick="resetCar()">🔄 RESET</button>
-            </div>
-            <button class="menuBtn" style="background: linear-gradient(45deg, #ff416c 0%, #ff4b2b 100%);" 
-                    onclick="pauseGame()">⏸️ PAUSAR</button>
+        
+        <div id="touchControls">
+            <div class="touch-zone" id="steerZone"></div>
+            <div class="touch-zone" id="acceleratorZone"></div>
+            <div class="touch-zone" id="brakeZone"></div>
         </div>
-    </div>
-
-    <!-- STATUS DO JOGO -->
-    <div id="gameStatus">
-        <h2>JOGO PAUSADO</h2>
-        <div style="margin: 20px 0;">
-            <button class="menuBtn" onclick="resumeGame()" style="margin: 10px;">▶️ CONTINUAR</button><br/>
-            <button class="menuBtn" onclick="showSettings()" style="margin: 10px;">⚙️ CONFIGURAÇÕES</button><br/>
-            <button class="menuBtn" onclick="exitGame()" style="margin: 10px; background: linear-gradient(45deg, #ff0000 0%, #cc0000 100%);">🚪 SAIR</button>
+        
+        <div id="loading">
+            <div class="vaz-logo">ВАЗ 2108</div>
+            <div>Загрузка симулятора...</div>
+            <div style="margin-top: 20px; font-size: 14px; color: #888;">
+                Используйте тач-экраны для управления
+            </div>
         </div>
     </div>
 
     <script>
+        // ============================================
+        // CONFIGURAÇÃO DO SIMULADOR VAZ 2108
+        // ============================================
+        
         // Variáveis do jogo
+        let scene, camera, renderer, controls;
+        let car, wheels = [];
+        let steerAngle = 0;
         let speed = 0;
         let rpm = 0;
         let gear = 'N';
-        let distance = 0;
-        let time = 0;
-        let cameraMode = 'drone';
-        let is360Mode = false;
-        let isSteering = false;
-        let steerAngle = 0;
-        let gamePaused = false;
-
-        // Elementos do DOM
-        const speedElement = document.querySelector('.infoValue:nth-child(1)');
-        const gearElement = document.querySelector('.infoValue:nth-child(2)');
-        const rpmElement = document.querySelector('.infoValue:nth-child(3)');
-        const cameraModeElement = document.getElementById('cameraMode');
-        const distanceElement = document.querySelector('.infoValue:nth-child(4)');
-        const timeElement = document.querySelector('.infoValue:nth-child(5)');
-        const steeringWheel = document.getElementById('steeringWheel');
-        const gameStatus = document.getElementById('gameStatus');
-        const cameraButtons = document.querySelectorAll('.cameraBtn');
-
-        // Atualiza informações do painel
-        function updateDashboard() {
-            speedElement.innerHTML = `${Math.floor(speed)}<span class="unit">km/h</span>`;
-            gearElement.innerHTML = `${gear}<span class="unit"></span>`;
-            rpmElement.innerHTML = `${(rpm/1000).toFixed(1)}<span class="unit">x1000</span>`;
-            distanceElement.innerHTML = `${(distance/1000).toFixed(1)}<span class="unit">km</span>`;
+        let fuel = 100;
+        let cameraMode = 'driver'; // driver, hood, drone
+        let isAccelerating = false;
+        let isBraking = false;
+        
+        // Elementos UI
+        const speedElement = document.getElementById('speed');
+        const rpmElement = document.getElementById('rpm');
+        const gearElement = document.getElementById('gear');
+        const fuelElement = document.getElementById('fuel');
+        const camModeElement = document.getElementById('camMode');
+        const loadingElement = document.getElementById('loading');
+        
+        // ============================================
+        // INICIALIZAÇÃO THREE.JS
+        // ============================================
+        
+        function init() {
+            // Cena
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0xaaaaaa, 10, 1000);
             
-            // Atualiza tempo
-            const minutes = Math.floor(time / 60);
-            const seconds = time % 60;
-            timeElement.innerHTML = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}<span class="unit"></span>`;
-        }
-
-        // Controle de câmera
-        function changeCamera(mode) {
-            cameraMode = mode;
-            cameraModeElement.textContent = mode.toUpperCase();
+            // Câmera
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.set(0, 2, 5);
             
-            // Atualiza botões ativos
-            cameraButtons.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            // Renderer
+            renderer = new THREE.WebGLRenderer({
+                canvas: document.getElementById('scene3d'),
+                antialias: true,
+                alpha: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             
-            // Simula mudança de câmera
-            console.log(`Câmera alterada para: ${mode}`);
+            // Controles da câmera
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enableZoom = true;
+            controls.enablePan = false;
             
-            // Feedback visual
-            const unityContainer = document.getElementById('unityContainer');
-            unityContainer.innerHTML = `
-                <div style="text-align: center;">
-                    <div style="font-size: 48px; margin-bottom: 20px;">
-                        ${mode === 'drone' ? '🚁' : mode === 'driver' ? '👁️' : '🚗'}
-                    </div>
-                    <h2>VISTA ${mode.toUpperCase()}</h2>
-                    <p>${getCameraDescription(mode)}</p>
-                    <p style="margin-top: 20px; color: #ffaa00;">[CÂMERA ATIVA: ${mode.toUpperCase()}]</p>
-                    ${is360Mode ? '<p style="color: #00ff88;">MODO 360° ATIVO</p>' : ''}
-                </div>
-            `;
-        }
-
-        function getCameraDescription(mode) {
-            const descriptions = {
-                'drone': 'Vista aérea drone - Visão completa da pista',
-                'driver': 'Vista do motorista - Perspectiva realista',
-                'hood': 'Vista do capô - Foco na estrada'
-            };
-            return descriptions[mode] || 'Vista padrão';
-        }
-
-        function toggle360() {
-            is360Mode = !is360Mode;
-            const btn = event.target;
-            if (is360Mode) {
-                btn.style.background = 'rgba(0, 255, 136, 0.3)';
-                btn.style.borderColor = '#00ff88';
-                console.log('Modo 360° ativado');
-            } else {
-                btn.style.background = '';
-                btn.style.borderColor = '';
-                console.log('Modo 360° desativado');
-            }
-        }
-
-        // Controles de direção
-        function startSteering(e) {
-            isSteering = true;
-            steeringWheel.style.animation = 'none';
-        }
-
-        function steerCar(e) {
-            if (!isSteering) return;
+            // Luzes
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
             
-            const touch = e.touches[0];
-            const rect = e.target.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const touchX = touch.clientX;
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(50, 100, 50);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
             
-            // Calcula ângulo baseado na posição do touch
-            steerAngle = ((touchX - centerX) / (rect.width / 2)) * 180;
-            steerAngle = Math.max(-180, Math.min(180, steerAngle));
+            // Criar carro VAZ 2108 (simples)
+            createVaz2108();
             
-            // Atualiza volante visualmente
-            steeringWheel.style.transform = `translate(-50%, -50%) rotate(${steerAngle}deg)`;
+            // Criar terreno simples
+            createTerrain();
             
-            // Atualiza marcha baseada na velocidade
-            if (speed > 0) {
-                if (speed < 30) gear = '1';
-                else if (speed < 60) gear = '2';
-                else if (speed < 90) gear = '3';
-                else if (speed < 120) gear = '4';
-                else gear = '5';
-            } else if (speed < 0) {
-                gear = 'R';
-            }
+            // Configurar controles touch
+            setupTouchControls();
             
-            updateDashboard();
-        }
-
-        function endSteering() {
-            isSteering = false;
-            // Volta o volante para centro suavemente
-            steeringWheel.style.transition = 'transform 0.5s ease-out';
-            steeringWheel.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+            // Esconder loading
             setTimeout(() => {
-                steeringWheel.style.transition = '';
-            }, 500);
-            steerAngle = 0;
+                loadingElement.style.display = 'none';
+            }, 2000);
+            
+            // Event listeners
+            window.addEventListener('resize', onWindowResize);
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+            
+            // Iniciar loop de animação
+            animate();
         }
-
-        // Controles de pedal
-        function accelerate() {
-            const pedal = document.getElementById('accelerator');
-            pedal.style.background = 'linear-gradient(to bottom, #44ff44 0%, #228822 100%)';
-            pedal.style.borderColor = '#88ff88';
+        
+        // ============================================
+        // CRIAR CARRO VAZ 2108 (GEOMETRIA SIMPLES)
+        // ============================================
+        
+        function createVaz2108() {
+            const carGroup = new THREE.Group();
             
-            // Aumenta velocidade
-            speed += 5;
-            rpm = Math.min(8000, rpm + 500);
+            // Carroceria (corpo principal - estilo VAZ 2108)
+            const bodyGeometry = new THREE.BoxGeometry(3.8, 1.2, 4.5);
+            const bodyMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xff0000, // Vermelho clássico do Lada
+                shininess: 30 
+            });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.y = 0.6;
+            body.castShadow = true;
+            carGroup.add(body);
             
-            updateDashboard();
-        }
-
-        function brake() {
-            const pedal = document.getElementById('brake');
-            pedal.style.background = 'linear-gradient(to bottom, #ff4444 0%, #882222 100%)';
-            pedal.style.borderColor = '#ff8888';
+            // Teto
+            const roofGeometry = new THREE.BoxGeometry(2.2, 0.8, 3);
+            const roofMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+            roof.position.set(0, 1.6, -0.2);
+            carGroup.add(roof);
             
-            // Diminui velocidade
-            speed = Math.max(-20, speed - 8); // Permite marcha ré
-            rpm = Math.max(1000, rpm - 300);
+            // Parabrisas
+            const windshieldGeometry = new THREE.BoxGeometry(2, 0.05, 1.5);
+            const glassMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x88ccff, 
+                transparent: true, 
+                opacity: 0.3 
+            });
+            const windshield = new THREE.Mesh(windshieldGeometry, glassMaterial);
+            windshield.position.set(0, 1.4, 0.8);
+            carGroup.add(windshield);
             
-            updateDashboard();
-        }
-
-        function releasePedals() {
-            // Reseta aparência dos pedais
-            document.getElementById('accelerator').style.background = '';
-            document.getElementById('accelerator').style.borderColor = '';
-            document.getElementById('brake').style.background = '';
-            document.getElementById('brake').style.borderColor = '';
+            // Faróis
+            const headlightGeometry = new THREE.SphereGeometry(0.2, 8, 8);
+            const headlightMaterial = new THREE.MeshPhongMaterial({ color: 0xffffaa });
+            const leftHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+            const rightHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+            leftHeadlight.position.set(-1.5, 0.8, 2);
+            rightHeadlight.position.set(1.5, 0.8, 2);
+            carGroup.add(leftHeadlight);
+            carGroup.add(rightHeadlight);
             
-            // Simula desaceleração gradual
-            const decelerate = setInterval(() => {
-                if (speed > 0) {
-                    speed = Math.max(0, speed - 0.5);
-                    rpm = Math.max(1000, rpm - 100);
-                    updateDashboard();
-                } else {
-                    clearInterval(decelerate);
-                    gear = 'N';
-                    updateDashboard();
+            // Rodas
+            const wheelGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16);
+            const wheelMaterial = new THREE.MeshPhongMaterial({ color: 0x222222 });
+            
+            for (let i = 0; i < 4; i++) {
+                const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                wheel.rotation.z = Math.PI / 2;
+                
+                switch(i) {
+                    case 0: // Dianteira esquerda
+                        wheel.position.set(-1.2, 0.4, 1.3);
+                        break;
+                    case 1: // Dianteira direita
+                        wheel.position.set(1.2, 0.4, 1.3);
+                        break;
+                    case 2: // Traseira esquerda
+                        wheel.position.set(-1.2, 0.4, -1.3);
+                        break;
+                    case 3: // Traseira direita
+                        wheel.position.set(1.2, 0.4, -1.3);
+                        break;
                 }
-            }, 100);
-        }
-
-        // Controles do jogo
-        function toggleMenu() {
-            gamePaused = !gamePaused;
-            gameStatus.style.display = gamePaused ? 'block' : 'none';
-            if (gamePaused) {
-                gameStatus.querySelector('h2').textContent = 'JOGO PAUSADO';
+                
+                carGroup.add(wheel);
+                wheels.push(wheel);
             }
-        }
-
-        function pauseGame() {
-            gamePaused = true;
-            gameStatus.style.display = 'block';
-            gameStatus.querySelector('h2').textContent = 'JOGO PAUSADO';
-        }
-
-        function resumeGame() {
-            gamePaused = false;
-            gameStatus.style.display = 'none';
-        }
-
-        function showSettings() {
-            alert('Configurações do jogo:\n\n• Gráficos: Alto\n• Controles: Touch\n• Áudio: 100%\n• Dificuldade: Realista');
-        }
-
-        function exitGame() {
-            if (confirm('Deseja realmente sair do jogo?')) {
-                alert('Jogo encerrado. Até a próxima! 🚗');
-                // Em um ambiente real, aqui você redirecionaria ou fecharia
-            }
-        }
-
-        function changeWeather() {
-            const weathers = ['🌞 ENSOLARADO', '🌧️ CHUVOSO', '⛈️ TEMPESTADE', '🌫️ NEVOEIRO', '❄️ NEVANDO'];
-            const current = document.querySelector('.menuBtn:nth-child(1)');
-            const randomWeather = weathers[Math.floor(Math.random() * weathers.length)];
-            current.textContent = randomWeather;
-            console.log(`Clima alterado para: ${randomWeather}`);
-        }
-
-        function changeTime() {
-            const times = ['🌅 AMANHECER', '🌞 MEIO-DIA', '🌆 ENTARDECER', '🌃 NOITE', '🌙 MADRUGADA'];
-            const current = document.querySelector('.menuBtn:nth-child(2)');
-            const randomTime = times[Math.floor(Math.random() * times.length)];
-            current.textContent = randomTime;
-            console.log(`Horário alterado para: ${randomTime}`);
-        }
-
-        function resetCar() {
-            speed = 0;
-            rpm = 1000;
-            gear = 'N';
-            steerAngle = 0;
-            steeringWheel.style.transform = 'translate(-50%, -50%) rotate(0deg)';
-            updateDashboard();
-            console.log('Carro resetado para posição inicial');
-        }
-
-        // Simula o tempo passando
-        setInterval(() => {
-            if (!gamePaused) {
-                time++;
-                if (speed > 0) {
-                    distance += speed / 3.6; // Converte km/h para m/s
-                }
-                updateDashboard();
-            }
-        }, 1000);
-
-        // Inicialização
-        window.onload = function() {
-            updateDashboard();
-            changeCamera('drone');
             
-            // Adiciona evento de toque para toda a tela
-            document.addEventListener('touchmove', function(e) {
-                if (e.target.id === 'steeringControl' || 
-                    e.target.id === 'accelerator' || 
-                    e.target.id === 'brake') {
-                    e.preventDefault();
-                }
-            }, { passive: false });
+            // Adicionar carro à cena
+            carGroup.position.y = 1;
+            scene.add(carGroup);
+            car = carGroup;
             
-            console.log('Simulador de Carro 360° - Pronto para uso!');
-            console.log('Área de simulação: 50km² montanhosa com pistas sinuosas');
-            console.log('Controles touch habilitados para rotação 360°');
-        };
-
-        // Feedback táctil (vibração se suportado)
-        function vibrate(duration = 50) {
-            if (navigator.vibrate) {
-                navigator.vibrate(duration);
+            console.log('ВАЗ 2108 создан!');
+        }
+        
+        // ============================================
+        // CRIAR TERRENO MONTANHOSO
+        // ============================================
+        
+        function createTerrain() {
+            // Terreno simples
+            const terrainGeometry = new THREE.PlaneGeometry(1000, 1000, 100, 100);
+            
+            // Criar montanhas (modificar vertices)
+            const vertices = terrainGeometry.attributes.position.array;
+            for (let i = 0; i < vertices.length; i += 3) {
+                const x = vertices[i];
+                const z = vertices[i + 2];
+                const distance = Math.sqrt(x * x + z * z);
+                
+                // Criar montanhas
+                if (distance < 200) {
+                    const height = Math.sin(x * 0.02) * Math.cos(z * 0.02) * 20;
+                    vertices[i + 1] = height;
+                }
+            }
+            
+            terrainGeometry.computeVertexNormals();
+            
+            const terrainMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x3a5f0b,
+                side: THREE.DoubleSide
+            });
+            
+            const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
+            terrain.rotation.x = -Math.PI / 2;
+            terrain.receiveShadow = true;
+            scene.add(terrain);
+            
+            // Adicionar algumas árvores
+            for (let i = 0; i < 50; i++) {
+                const tree = createTree();
+                tree.position.set(
+                    (Math.random() - 0.5) * 400,
+                    0,
+                    (Math.random() - 0.5) * 400
+                );
+                scene.add(tree);
+            }
+            
+            // Criar pista simples
+            createRoad();
+        }
+        
+        function createTree() {
+            const treeGroup = new THREE.Group();
+            
+            // Tronco
+            const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.3, 2);
+            const trunkMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            treeGroup.add(trunk);
+            
+            // Copa
+            const leavesGeometry = new THREE.ConeGeometry(1.5, 3, 8);
+            const leavesMaterial = new THREE.MeshPhongMaterial({ color: 0x228B22 });
+            const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
+            leaves.position.y = 2.5;
+            treeGroup.add(leaves);
+            
+            return treeGroup;
+        }
+        
+        function createRoad() {
+            const roadGeometry = new THREE.PlaneGeometry(8, 1000);
+            const roadMaterial = new THREE.MeshPhongMaterial({ color: 0x333333 });
+            const road = new THREE.Mesh(roadGeometry, roadMaterial);
+            road.rotation.x = -Math.PI / 2;
+            road.position.y = 0.1;
+            scene.add(road);
+            
+            // Linhas da pista
+            for (let i = -500; i < 500; i += 10) {
+                const lineGeometry = new THREE.PlaneGeometry(0.5, 3);
+                const lineMaterial = new THREE.MeshPhongMaterial({ color: 0xffff00 });
+                const line = new THREE.Mesh(lineGeometry, lineMaterial);
+                line.rotation.x = -Math.PI / 2;
+                line.position.set(0, 0.11, i);
+                scene.add(line);
             }
         }
+        
+        // ============================================
+        // CONTROLES TOUCH
+        // ============================================
+        
+        function setupTouchControls() {
+            const steerZone = document.getElementById('steerZone');
+            const accZone = document.getElementById('acceleratorZone');
+            const brakeZone = document.getElementById('brakeZone');
+            
+            let steerTouchId = null;
+            let steerStartX = 0;
+            
+            // Controle de direção
+            steerZone.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (steerTouchId === null) {
+                    const touch = e.touches[0];
+                    steerTouchId = touch.identifier;
+                    steerStartX = touch.clientX;
+                }
+            });
+            
+            steerZone.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (steerTouchId !== null) {
+                    const touch = Array.from(e.touches).find(t => t.identifier === steerTouchId);
+                    if (touch) {
+                        const deltaX = touch.clientX - steerStartX;
+                        steerAngle = (deltaX / window.innerWidth) * 2;
+                        steerAngle = Math.max(-1, Math.min(1, steerAngle));
+                    }
+                }
+            });
+            
+            steerZone.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                steerTouchId = null;
+                steerAngle = 0;
+            });
+            
+            // Acelerador
+            accZone.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isAccelerating = true;
+                accZone.style.background = 'rgba(0, 255, 0, 0.3)';
+            });
+            
+            accZone.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                isAccelerating = false;
+                accZone.style.background = 'rgba(0, 255, 0, 0.1)';
+            });
+            
+            // Freio
+            brakeZone.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isBraking = true;
+                brakeZone.style.background = 'rgba(255, 0, 0, 0.3)';
+            });
+            
+            brakeZone.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                isBraking = false;
+                brakeZone.style.background = 'rgba(255, 0, 0, 0.1)';
+            });
+            
+            // Trocar câmera com toque duplo
+            let lastTap = 0;
+            document.addEventListener('touchstart', (e) => {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTap;
+                
+                if (tapLength < 500 && tapLength > 0) {
+                    // Toque duplo - trocar câmera
+                    switchCamera();
+                }
+                lastTap = currentTime;
+            });
+        }
+        
+        // ============================================
+        // CONTROLES DE CÂMERA
+        // ============================================
+        
+        function switchCamera() {
+            const modes = ['driver', 'hood', 'drone'];
+            const currentIndex = modes.indexOf(cameraMode);
+            cameraMode = modes[(currentIndex + 1) % modes.length];
+            updateCamera();
+        }
+        
+        function updateCamera() {
+            if (!car) return;
+            
+            const carPos = car.position;
+            
+            switch(cameraMode) {
+                case 'driver':
+                    // Vista do motorista
+                    camera.position.set(
+                        carPos.x,
+                        carPos.y + 1.6,
+                        carPos.z + 1
+                    );
+                    camera.lookAt(carPos.x, carPos.y + 1, carPos.z + 10);
+                    camModeElement.textContent = 'Водитель';
+                    break;
+                    
+                case 'hood':
+                    // Vista do capô
+                    camera.position.set(
+                        carPos.x,
+                        carPos.y + 1.2,
+                        carPos.z + 2
+                    );
+                    camera.lookAt(carPos.x, carPos.y + 1, carPos.z + 20);
+                    camModeElement.textContent = 'Капот';
+                    break;
+                    
+                case 'drone':
+                    // Vista drone
+                    camera.position.set(
+                        carPos.x + 10,
+                        carPos.y + 15,
+                        carPos.z + 10
+                    );
+                    camera.lookAt(carPos.x, carPos.y, carPos.z);
+                    camModeElement.textContent = 'Дрон';
+                    break;
+            }
+        }
+        
+        // ============================================
+        // FÍSICA DO CARRO (SIMPLIFICADA)
+        // ============================================
+        
+        function updateCar(deltaTime) {
+            if (!car) return;
+            
+            // Aplicar aceleração
+            if (isAccelerating) {
+                speed += 5 * deltaTime;
+                rpm += 100 * deltaTime;
+            } else if (isBraking) {
+                speed -= 10 * deltaTime;
+                rpm -= 50 * deltaTime;
+            } else {
+                // Desaceleração natural
+                speed *= 0.98;
+                rpm *= 0.95;
+            }
+            
+            // Limites
+            speed = Math.max(0, Math.min(180, speed));
+            rpm = Math.max(800, Math.min(6000, rpm));
+            
+            // Atualizar marcha
+            if (speed < 20) gear = '1';
+            else if (speed < 40) gear = '2';
+            else if (speed < 60) gear = '3';
+            else if (speed < 80) gear = '4';
+            else gear = '5';
+            
+            if (speed === 0) gear = 'N';
+            
+            // Mover carro
+            const moveDistance = (speed / 3.6) * deltaTime;
+            const rotateAngle = steerAngle * 0.05 * deltaTime;
+            
+            car.rotation.y -= rotateAngle;
+            car.translateZ(-moveDistance);
+            
+            // Atualizar rodas
+            wheels.forEach((wheel, index) => {
+                // Rodas dianteiras viram
+                if (index < 2) {
+                    wheel.rotation.y = steerAngle * 0.5;
+                }
+                
+                // Todas rodas giram
+                wheel.rotation.x += moveDistance * 5;
+            });
+            
+            // Atualizar combustível
+            fuel = Math.max(0, fuel - (rpm / 10000) * deltaTime);
+            
+            // Atualizar UI
+            updateUI();
+            
+            // Atualizar câmera
+            updateCamera();
+        }
+        
+        function updateUI() {
+            speedElement.textContent = `${Math.floor(speed)} км/ч`;
+            rpmElement.textContent = `${Math.floor(rpm)} об/мин`;
+            gearElement.textContent = gear;
+            fuelElement.textContent = `${Math.floor(fuel)} %`;
+        }
+        
+        // ============================================
+        // CONTROLES DE TECLADO (PARA TESTE NO PC)
+        // ============================================
+        
+        function onKeyDown(event) {
+            switch(event.key) {
+                case 'ArrowUp':
+                    isAccelerating = true;
+                    break;
+                case 'ArrowDown':
+                    isBraking = true;
+                    break;
+                case 'ArrowLeft':
+                    steerAngle = 0.5;
+                    break;
+                case 'ArrowRight':
+                    steerAngle = -0.5;
+                    break;
+                case 'c':
+                case 'C':
+                    switchCamera();
+                    break;
+                case ' ':
+                    // Freio de mão
+                    speed *= 0.5;
+                    break;
+            }
+        }
+        
+        function onKeyUp(event) {
+            switch(event.key) {
+                case 'ArrowUp':
+                    isAccelerating = false;
+                    break;
+                case 'ArrowDown':
+                    isBraking = false;
+                    break;
+                case 'ArrowLeft':
+                case 'ArrowRight':
+                    steerAngle = 0;
+                    break;
+            }
+        }
+        
+        // ============================================
+        // LOOP DE ANIMAÇÃO
+        // ============================================
+        
+        let clock = new THREE.Clock();
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const deltaTime = clock.getDelta();
+            
+            // Atualizar física do carro
+            updateCar(deltaTime);
+            
+            // Atualizar controles da câmera
+            controls.update();
+            
+            // Renderizar
+            renderer.render(scene, camera);
+        }
+        
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        // ============================================
+        // INICIAR TUDO
+        // ============================================
+        
+        // Iniciar quando a página carregar
+        window.addEventListener('load', init);
+        
+        // Instruções
+        console.log('ВАЗ 2108 СИМУЛЯТОР ЗАГРУЖЕН!');
+        console.log('Управление:');
+        console.log('- Тач-зоны для руления и педалей');
+        console.log('- Двойное нажатие для смены камеры');
+        console.log('- Стрелки для управления на ПК');
+        console.log('- C для смены камеры на ПК');
+        
     </script>
 </body>
 </html>
