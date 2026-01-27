@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Simulador de Carro 360° - Drone View</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+            touch-action: none;
+        }
+
+        #gameContainer {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 10px;
+            gap: 10px;
+        }
+
+        /* TOP BAR - Informações do jogo */
+        #topBar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 20px;
+            border-radius: 15px;
+            border: 2px solid #00ff88;
+            backdrop-filter: blur(10px);
+        }
+
+        .carInfo {
+            display: flex;
+            gap: 25px;
+        }
+
+        .infoItem {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .infoLabel {
+            font-size: 12px;
+            color: #88ffcc;
+            margin-bottom: 4px;
+        }
+
+        .infoValue {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .unit {
+            font-size: 12px;
+            color: #aaa;
+            margin-left: 2px;
+        }
+
+        /* ÁREA DO JOGO - Onde ficaria a visualização 3D */
+        #gameArea {
+            flex: 1;
+            position: relative;
+            background: linear-gradient(45deg, #2d5a27 0%, #1e3c1e 100%);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 3px solid #333;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        #unityContainer {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        #mapView {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: 200px;
+            background: rgba(0, 20, 40, 0.9);
+            border: 2px solid #00aaff;
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        #miniMap {
+            width: 100%;
+            height: 100%;
+            background: #2a5c3d;
+        }
+
+        /* CONTROLES DE CÂMERA */
+        #cameraControls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .cameraBtn {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #ffaa00;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(5px);
+        }
+
+        .cameraBtn:hover, .cameraBtn.active {
+            background: rgba(255, 170, 0, 0.3);
+            transform: scale(1.1);
+        }
+
+        /* CONTROLES TOUCH */
+        #controlsContainer {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            height: 180px;
+        }
+
+        #steeringControl {
+            flex: 1;
+            position: relative;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 20px;
+            border: 2px solid #ff4444;
+            touch-action: none;
+        }
+
+        #steeringWheel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 120px;
+            height: 120px;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, #333 0%, #000 100%);
+            border: 8px solid #666;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #ff4444;
+            font-size: 40px;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+        }
+
+        #pedalsControl {
+            width: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 20px;
+            border: 2px solid #44ff44;
+            padding: 20px;
+        }
+
+        .pedal {
+            height: 70px;
+            background: linear-gradient(to bottom, #222 0%, #000 100%);
+            border-radius: 10px;
+            border: 3px solid #444;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            touch-action: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pedal:active {
+            background: linear-gradient(to bottom, #44aa44 0%, #228822 100%);
+            border-color: #88ff88;
+        }
+
+        #accelerator {
+            border-color: #44ff44;
+        }
+
+        #brake {
+            border-color: #ff4444;
+        }
+
+        .pedalLabel {
+            position: absolute;
+            top: 5px;
+            left: 10px;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        /* MENU INFERIOR */
+        #bottomMenu {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 20px;
+            border-radius: 15px;
+            border: 2px solid #aa44ff;
+        }
+
+        .menuBtn {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #6a11cb 0%, #2575fc 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .menuBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
+        }
+
+        /* STATUS DO JOGO */
+        #gameStatus {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            border: 3px solid #ffaa00;
+            text-align: center;
+            z-index: 100;
+            display: none;
+        }
+
+        /* ANIMAÇÃO DO VOLANTE */
+        @keyframes steerLeft {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(-180deg); }
+        }
+
+        @keyframes steerRight {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(180deg); }
+        }
+
+        /* RESPONSIVIDADE */
+        @media (max-width: 768px) {
+            #controlsContainer {
+                height: 150px;
+            }
+            
+            #steeringWheel {
+                width: 100px;
+                height: 100px;
+                font-size: 30px;
+            }
+            
+            .cameraBtn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+            
+            .infoValue {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- TOP BAR - Informações do carro -->
+        <div id="topBar">
+            <div class="carInfo">
+                <div class="infoItem">
+                    <div class="infoLabel">VELOCIDADE</div>
+                    <div class="infoValue">0<span class="unit">km/h</span></div>
+                </div>
+                <div class="infoItem">
+                    <div class="infoLabel">MARCHA</div>
+                    <div class="infoValue">N<span class="unit"></span></div>
+                </div>
+                <div class="infoItem">
+                    <div class="infoLabel">RPM</div>
+                    <div class="infoValue">0<span class="unit">x1000</span></div>
+                </div>
+                <div class="infoItem">
+                    <div class="infoLabel">CÂMERA</div>
+                    <div class="infoValue" id="cameraMode">DRONE</div>
+                </div>
+            </div>
+            
+            <div class="carInfo">
+                <div class="infoItem">
+                    <div class="infoLabel">DISTÂNCIA</div>
+                    <div class="infoValue">0<span class="unit">km</span></div>
+                </div>
+                <div class="infoItem">
+                    <div class="infoLabel">TEMPO</div>
+                    <div class="infoValue">00:00<span class="unit"></span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ÁREA PRINCIPAL DO JOGO -->
+        <div id="gameArea">
+            <!-- Aqui iria o WebGL do Unity -->
+            <div id="unityContainer">
+                <div style="text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">🚗</div>
+                    <h2>SIMULADOR 360° REALÍSTICO</h2>
+                    <p>Área montanhosa de 50km² com pistas sinuosas</p>
+                    <p style="margin-top: 20px; color: #ffaa00;">[AREA PARA UNITY WEBGL]</p>
+                    <p>Controles touch habilitados para rotação 360°</p>
+                </div>
+            </div>
+
+            <!-- Controles de Câmera -->
+            <div id="cameraControls">
+                <div class="cameraBtn active" onclick="changeCamera('drone')" title="Vista Drone">
+                    🚁
+                </div>
+                <div class="cameraBtn" onclick="changeCamera('driver')" title="Vista Motorista">
+                    👁️
+                </div>
+                <div class="cameraBtn" onclick="changeCamera('hood')" title="Vista Capô">
+                    🚗
+                </div>
+                <div class="cameraBtn" onclick="toggle360()" title="Modo 360°">
+                    🔄
+                </div>
+            </div>
+
+            <!-- Mini Mapa -->
+            <div id="mapView">
+                <div id="miniMap">
+                    <!-- Mapa seria gerado aqui -->
+                    <div style="width: 100%; height: 100%; position: relative;">
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                                    font-size: 12px; color: #88ff88; text-align: center;">
+                            MAPA 50km²<br/>
+                            ⛰️ MONTANHAS<br/>
+                            🛣️ PISTAS<br/>
+                            🏁 CHECKPOINTS
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTROLES TOUCH -->
+        <div id="controlsContainer">
+            <div id="steeringControl" ontouchstart="startSteering(event)" ontouchmove="steerCar(event)" ontouchend="endSteering()">
+                <div id="steeringWheel">🎮</div>
+            </div>
+            
+            <div id="pedalsControl">
+                <div class="pedal" id="accelerator" ontouchstart="accelerate()" ontouchend="releasePedals()">
+                    <div class="pedalLabel">ACELERADOR</div>
+                    ⬆️
+                </div>
+                <div class="pedal" id="brake" ontouchstart="brake()" ontouchend="releasePedals()">
+                    <div class="pedalLabel">FREIO</div>
+                    ⬇️
+                </div>
+            </div>
+        </div>
+
+        <!-- MENU INFERIOR -->
+        <div id="bottomMenu">
+            <button class="menuBtn" onclick="toggleMenu()">MENU</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="menuBtn" onclick="changeWeather()">🌦️ CLIMA</button>
+                <button class="menuBtn" onclick="changeTime()">🌓 HORÁRIO</button>
+                <button class="menuBtn" onclick="resetCar()">🔄 RESET</button>
+            </div>
+            <button class="menuBtn" style="background: linear-gradient(45deg, #ff416c 0%, #ff4b2b 100%);" 
+                    onclick="pauseGame()">⏸️ PAUSAR</button>
+        </div>
+    </div>
+
+    <!-- STATUS DO JOGO -->
+    <div id="gameStatus">
+        <h2>JOGO PAUSADO</h2>
+        <div style="margin: 20px 0;">
+            <button class="menuBtn" onclick="resumeGame()" style="margin: 10px;">▶️ CONTINUAR</button><br/>
+            <button class="menuBtn" onclick="showSettings()" style="margin: 10px;">⚙️ CONFIGURAÇÕES</button><br/>
+            <button class="menuBtn" onclick="exitGame()" style="margin: 10px; background: linear-gradient(45deg, #ff0000 0%, #cc0000 100%);">🚪 SAIR</button>
+        </div>
+    </div>
+
+    <script>
+        // Variáveis do jogo
+        let speed = 0;
+        let rpm = 0;
+        let gear = 'N';
+        let distance = 0;
+        let time = 0;
+        let cameraMode = 'drone';
+        let is360Mode = false;
+        let isSteering = false;
+        let steerAngle = 0;
+        let gamePaused = false;
+
+        // Elementos do DOM
+        const speedElement = document.querySelector('.infoValue:nth-child(1)');
+        const gearElement = document.querySelector('.infoValue:nth-child(2)');
+        const rpmElement = document.querySelector('.infoValue:nth-child(3)');
+        const cameraModeElement = document.getElementById('cameraMode');
+        const distanceElement = document.querySelector('.infoValue:nth-child(4)');
+        const timeElement = document.querySelector('.infoValue:nth-child(5)');
+        const steeringWheel = document.getElementById('steeringWheel');
+        const gameStatus = document.getElementById('gameStatus');
+        const cameraButtons = document.querySelectorAll('.cameraBtn');
+
+        // Atualiza informações do painel
+        function updateDashboard() {
+            speedElement.innerHTML = `${Math.floor(speed)}<span class="unit">km/h</span>`;
+            gearElement.innerHTML = `${gear}<span class="unit"></span>`;
+            rpmElement.innerHTML = `${(rpm/1000).toFixed(1)}<span class="unit">x1000</span>`;
+            distanceElement.innerHTML = `${(distance/1000).toFixed(1)}<span class="unit">km</span>`;
+            
+            // Atualiza tempo
+            const minutes = Math.floor(time / 60);
+            const seconds = time % 60;
+            timeElement.innerHTML = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}<span class="unit"></span>`;
+        }
+
+        // Controle de câmera
+        function changeCamera(mode) {
+            cameraMode = mode;
+            cameraModeElement.textContent = mode.toUpperCase();
+            
+            // Atualiza botões ativos
+            cameraButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Simula mudança de câmera
+            console.log(`Câmera alterada para: ${mode}`);
+            
+            // Feedback visual
+            const unityContainer = document.getElementById('unityContainer');
+            unityContainer.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">
+                        ${mode === 'drone' ? '🚁' : mode === 'driver' ? '👁️' : '🚗'}
+                    </div>
+                    <h2>VISTA ${mode.toUpperCase()}</h2>
+                    <p>${getCameraDescription(mode)}</p>
+                    <p style="margin-top: 20px; color: #ffaa00;">[CÂMERA ATIVA: ${mode.toUpperCase()}]</p>
+                    ${is360Mode ? '<p style="color: #00ff88;">MODO 360° ATIVO</p>' : ''}
+                </div>
+            `;
+        }
+
+        function getCameraDescription(mode) {
+            const descriptions = {
+                'drone': 'Vista aérea drone - Visão completa da pista',
+                'driver': 'Vista do motorista - Perspectiva realista',
+                'hood': 'Vista do capô - Foco na estrada'
+            };
+            return descriptions[mode] || 'Vista padrão';
+        }
+
+        function toggle360() {
+            is360Mode = !is360Mode;
+            const btn = event.target;
+            if (is360Mode) {
+                btn.style.background = 'rgba(0, 255, 136, 0.3)';
+                btn.style.borderColor = '#00ff88';
+                console.log('Modo 360° ativado');
+            } else {
+                btn.style.background = '';
+                btn.style.borderColor = '';
+                console.log('Modo 360° desativado');
+            }
+        }
+
+        // Controles de direção
+        function startSteering(e) {
+            isSteering = true;
+            steeringWheel.style.animation = 'none';
+        }
+
+        function steerCar(e) {
+            if (!isSteering) return;
+            
+            const touch = e.touches[0];
+            const rect = e.target.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const touchX = touch.clientX;
+            
+            // Calcula ângulo baseado na posição do touch
+            steerAngle = ((touchX - centerX) / (rect.width / 2)) * 180;
+            steerAngle = Math.max(-180, Math.min(180, steerAngle));
+            
+            // Atualiza volante visualmente
+            steeringWheel.style.transform = `translate(-50%, -50%) rotate(${steerAngle}deg)`;
+            
+            // Atualiza marcha baseada na velocidade
+            if (speed > 0) {
+                if (speed < 30) gear = '1';
+                else if (speed < 60) gear = '2';
+                else if (speed < 90) gear = '3';
+                else if (speed < 120) gear = '4';
+                else gear = '5';
+            } else if (speed < 0) {
+                gear = 'R';
+            }
+            
+            updateDashboard();
+        }
+
+        function endSteering() {
+            isSteering = false;
+            // Volta o volante para centro suavemente
+            steeringWheel.style.transition = 'transform 0.5s ease-out';
+            steeringWheel.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+            setTimeout(() => {
+                steeringWheel.style.transition = '';
+            }, 500);
+            steerAngle = 0;
+        }
+
+        // Controles de pedal
+        function accelerate() {
+            const pedal = document.getElementById('accelerator');
+            pedal.style.background = 'linear-gradient(to bottom, #44ff44 0%, #228822 100%)';
+            pedal.style.borderColor = '#88ff88';
+            
+            // Aumenta velocidade
+            speed += 5;
+            rpm = Math.min(8000, rpm + 500);
+            
+            updateDashboard();
+        }
+
+        function brake() {
+            const pedal = document.getElementById('brake');
+            pedal.style.background = 'linear-gradient(to bottom, #ff4444 0%, #882222 100%)';
+            pedal.style.borderColor = '#ff8888';
+            
+            // Diminui velocidade
+            speed = Math.max(-20, speed - 8); // Permite marcha ré
+            rpm = Math.max(1000, rpm - 300);
+            
+            updateDashboard();
+        }
+
+        function releasePedals() {
+            // Reseta aparência dos pedais
+            document.getElementById('accelerator').style.background = '';
+            document.getElementById('accelerator').style.borderColor = '';
+            document.getElementById('brake').style.background = '';
+            document.getElementById('brake').style.borderColor = '';
+            
+            // Simula desaceleração gradual
+            const decelerate = setInterval(() => {
+                if (speed > 0) {
+                    speed = Math.max(0, speed - 0.5);
+                    rpm = Math.max(1000, rpm - 100);
+                    updateDashboard();
+                } else {
+                    clearInterval(decelerate);
+                    gear = 'N';
+                    updateDashboard();
+                }
+            }, 100);
+        }
+
+        // Controles do jogo
+        function toggleMenu() {
+            gamePaused = !gamePaused;
+            gameStatus.style.display = gamePaused ? 'block' : 'none';
+            if (gamePaused) {
+                gameStatus.querySelector('h2').textContent = 'JOGO PAUSADO';
+            }
+        }
+
+        function pauseGame() {
+            gamePaused = true;
+            gameStatus.style.display = 'block';
+            gameStatus.querySelector('h2').textContent = 'JOGO PAUSADO';
+        }
+
+        function resumeGame() {
+            gamePaused = false;
+            gameStatus.style.display = 'none';
+        }
+
+        function showSettings() {
+            alert('Configurações do jogo:\n\n• Gráficos: Alto\n• Controles: Touch\n• Áudio: 100%\n• Dificuldade: Realista');
+        }
+
+        function exitGame() {
+            if (confirm('Deseja realmente sair do jogo?')) {
+                alert('Jogo encerrado. Até a próxima! 🚗');
+                // Em um ambiente real, aqui você redirecionaria ou fecharia
+            }
+        }
+
+        function changeWeather() {
+            const weathers = ['🌞 ENSOLARADO', '🌧️ CHUVOSO', '⛈️ TEMPESTADE', '🌫️ NEVOEIRO', '❄️ NEVANDO'];
+            const current = document.querySelector('.menuBtn:nth-child(1)');
+            const randomWeather = weathers[Math.floor(Math.random() * weathers.length)];
+            current.textContent = randomWeather;
+            console.log(`Clima alterado para: ${randomWeather}`);
+        }
+
+        function changeTime() {
+            const times = ['🌅 AMANHECER', '🌞 MEIO-DIA', '🌆 ENTARDECER', '🌃 NOITE', '🌙 MADRUGADA'];
+            const current = document.querySelector('.menuBtn:nth-child(2)');
+            const randomTime = times[Math.floor(Math.random() * times.length)];
+            current.textContent = randomTime;
+            console.log(`Horário alterado para: ${randomTime}`);
+        }
+
+        function resetCar() {
+            speed = 0;
+            rpm = 1000;
+            gear = 'N';
+            steerAngle = 0;
+            steeringWheel.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+            updateDashboard();
+            console.log('Carro resetado para posição inicial');
+        }
+
+        // Simula o tempo passando
+        setInterval(() => {
+            if (!gamePaused) {
+                time++;
+                if (speed > 0) {
+                    distance += speed / 3.6; // Converte km/h para m/s
+                }
+                updateDashboard();
+            }
+        }, 1000);
+
+        // Inicialização
+        window.onload = function() {
+            updateDashboard();
+            changeCamera('drone');
+            
+            // Adiciona evento de toque para toda a tela
+            document.addEventListener('touchmove', function(e) {
+                if (e.target.id === 'steeringControl' || 
+                    e.target.id === 'accelerator' || 
+                    e.target.id === 'brake') {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            console.log('Simulador de Carro 360° - Pronto para uso!');
+            console.log('Área de simulação: 50km² montanhosa com pistas sinuosas');
+            console.log('Controles touch habilitados para rotação 360°');
+        };
+
+        // Feedback táctil (vibração se suportado)
+        function vibrate(duration = 50) {
+            if (navigator.vibrate) {
+                navigator.vibrate(duration);
+            }
+        }
+    </script>
+</body>
+</html>
