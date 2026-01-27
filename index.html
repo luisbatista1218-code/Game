@@ -3,39 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador VAZ 2108 - WebGL</title>
+    <title>Simulador de Carro Profissional - Gráficos Reais</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cannon-es@0.19.0/dist/cannon-es.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Courier New', monospace;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
             background: #000;
-            color: #0f0;
             overflow: hidden;
-            height: 100vh;
-            touch-action: none;
         }
-        
-        #gameContainer {
-            width: 100%;
+        #container {
+            width: 100vw;
             height: 100vh;
             position: relative;
         }
-        
-        #scene3d {
-            width: 100%;
-            height: 100%;
+        canvas {
             display: block;
         }
-        
-        #uiOverlay {
+        #ui {
             position: absolute;
             top: 0;
             left: 0;
@@ -43,713 +31,543 @@
             height: 100%;
             pointer-events: none;
         }
-        
-        /* Painel do VAZ 2108 (estilo russo antigo) */
+        /* Painel profissional */
         #dashboard {
             position: absolute;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(30, 30, 30, 0.9);
-            border: 3px solid #8B0000;
-            border-radius: 10px;
-            padding: 15px;
-            min-width: 300px;
-            backdrop-filter: blur(5px);
-        }
-        
-        .dashboard-row {
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #00ff88;
+            min-width: 400px;
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
+            gap: 30px;
+            backdrop-filter: blur(10px);
         }
-        
         .gauge {
+            color: white;
             text-align: center;
-            flex: 1;
-            margin: 0 10px;
         }
-        
         .gauge-label {
             font-size: 12px;
-            color: #ff4444;
+            color: #00ff88;
             margin-bottom: 5px;
         }
-        
         .gauge-value {
-            font-size: 24px;
-            font-family: 'Digital-7', monospace;
-            color: #ff0000;
-            background: #111;
-            padding: 5px 10px;
-            border: 2px solid #444;
-            border-radius: 5px;
+            font-size: 28px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
         }
-        
-        .unit {
-            font-size: 10px;
-            color: #888;
-        }
-        
         /* Controles touch */
-        #touchControls {
+        #controls {
             position: absolute;
             width: 100%;
             height: 100%;
             pointer-events: auto;
         }
-        
-        .touch-zone {
+        .control-zone {
             position: absolute;
-            background: rgba(255, 0, 0, 0.1);
-            border: 2px dashed rgba(255, 0, 0, 0.3);
+            opacity: 0.3;
         }
-        
-        #steerZone {
+        #steer-zone {
             left: 0;
             width: 40%;
             height: 100%;
+            background: blue;
         }
-        
-        #acceleratorZone {
+        #pedals-zone {
             right: 0;
-            bottom: 0;
-            width: 30%;
-            height: 40%;
-            background: rgba(0, 255, 0, 0.1);
-            border-color: rgba(0, 255, 0, 0.3);
+            width: 40%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
-        
-        #brakeZone {
-            right: 0;
-            top: 0;
-            width: 30%;
-            height: 40%;
-            background: rgba(255, 0, 0, 0.1);
-            border-color: rgba(255, 0, 0, 0.3);
+        #accelerator {
+            flex: 1;
+            background: green;
+            margin-bottom: 10px;
         }
-        
-        /* Indicador de câmera */
-        #cameraIndicator {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 5px;
-            border: 2px solid #8B0000;
-        }
-        
-        /* Título estilo russo */
-        #title {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 24px;
-            color: #ff0000;
-            text-shadow: 0 0 10px #ff0000;
-            font-family: 'Times New Roman', serif;
-        }
-        
-        /* Mensagem de carregamento */
-        #loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            font-size: 20px;
-            color: #ff0000;
-        }
-        
-        .vaz-logo {
-            font-size: 48px;
-            margin-bottom: 20px;
-            color: #ff0000;
-        }
-        
-        /* Responsivo */
-        @media (max-width: 768px) {
-            #dashboard {
-                width: 90%;
-                padding: 10px;
-            }
-            
-            .gauge-value {
-                font-size: 18px;
-                padding: 3px 6px;
-            }
+        #brake {
+            flex: 1;
+            background: red;
         }
     </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <canvas id="scene3d"></canvas>
-        
-        <div id="uiOverlay">
-            <div id="title">ВАЗ 2108<br/>СИМУЛЯТОР</div>
-            
+    <div id="container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui">
             <div id="dashboard">
-                <div class="dashboard-row">
-                    <div class="gauge">
-                        <div class="gauge-label">СКОРОСТЬ</div>
-                        <div class="gauge-value" id="speed">0 <span class="unit">км/ч</span></div>
-                    </div>
-                    <div class="gauge">
-                        <div class="gauge-label">ОБОРОТЫ</div>
-                        <div class="gauge-value" id="rpm">0 <span class="unit">об/мин</span></div>
-                    </div>
+                <div class="gauge">
+                    <div class="gauge-label">VELOCIDADE</div>
+                    <div class="gauge-value" id="speed">0 <span style="font-size: 14px">km/h</span></div>
                 </div>
-                <div class="dashboard-row">
-                    <div class="gauge">
-                        <div class="gauge-label">ПЕРЕДАЧА</div>
-                        <div class="gauge-value" id="gear">N</div>
-                    </div>
-                    <div class="gauge">
-                        <div class="gauge-label">ТОПЛИВО</div>
-                        <div class="gauge-value" id="fuel">100 <span class="unit">%</span></div>
-                    </div>
+                <div class="gauge">
+                    <div class="gauge-label">RPM</div>
+                    <div class="gauge-value" id="rpm">0</div>
+                </div>
+                <div class="gauge">
+                    <div class="gauge-label">MARCHA</div>
+                    <div class="gauge-value" id="gear">N</div>
                 </div>
             </div>
-            
-            <div id="cameraIndicator">
-                Камера: <span id="camMode">Водитель</span>
-            </div>
         </div>
-        
-        <div id="touchControls">
-            <div class="touch-zone" id="steerZone"></div>
-            <div class="touch-zone" id="acceleratorZone"></div>
-            <div class="touch-zone" id="brakeZone"></div>
-        </div>
-        
-        <div id="loading">
-            <div class="vaz-logo">ВАЗ 2108</div>
-            <div>Загрузка симулятора...</div>
-            <div style="margin-top: 20px; font-size: 14px; color: #888;">
-                Используйте тач-экраны для управления
+        <div id="controls">
+            <div class="control-zone" id="steer-zone"></div>
+            <div class="control-zone" id="pedals-zone">
+                <div class="control-zone" id="accelerator"></div>
+                <div class="control-zone" id="brake"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // ============================================
-        // CONFIGURAÇÃO DO SIMULADOR VAZ 2108
-        // ============================================
-        
-        // Variáveis do jogo
-        let scene, camera, renderer, controls;
-        let car, wheels = [];
+        // ========== CONFIGURAÇÃO ==========
+        let scene, camera, renderer, world;
+        let carBody, carModel;
         let steerAngle = 0;
+        let engineForce = 0;
+        let brakeForce = 0;
         let speed = 0;
         let rpm = 0;
-        let gear = 'N';
-        let fuel = 100;
-        let cameraMode = 'driver'; // driver, hood, drone
-        let isAccelerating = false;
-        let isBraking = false;
         
-        // Elementos UI
-        const speedElement = document.getElementById('speed');
-        const rpmElement = document.getElementById('rpm');
-        const gearElement = document.getElementById('gear');
-        const fuelElement = document.getElementById('fuel');
-        const camModeElement = document.getElementById('camMode');
-        const loadingElement = document.getElementById('loading');
-        
-        // ============================================
-        // INICIALIZAÇÃO THREE.JS
-        // ============================================
-        
+        // ========== INICIALIZAR THREE.JS ==========
         function init() {
             // Cena
             scene = new THREE.Scene();
-            scene.fog = new THREE.Fog(0xaaaaaa, 10, 1000);
+            scene.fog = new THREE.Fog(0x87CEEB, 100, 2000);
             
             // Câmera
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
-            camera.position.set(0, 2, 5);
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 5000);
+            camera.position.set(0, 3, 8);
             
-            // Renderer
+            // Renderizador
             renderer = new THREE.WebGLRenderer({
-                canvas: document.getElementById('scene3d'),
+                canvas: document.getElementById('gameCanvas'),
                 antialias: true,
-                alpha: true
+                alpha: false
             });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1;
+            renderer.outputEncoding = THREE.sRGBEncoding;
             
-            // Controles da câmera
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.enableZoom = true;
-            controls.enablePan = false;
-            
-            // Luzes
+            // Iluminação profissional
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
             scene.add(ambientLight);
             
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(50, 100, 50);
-            directionalLight.castShadow = true;
-            directionalLight.shadow.mapSize.width = 2048;
-            directionalLight.shadow.mapSize.height = 2048;
-            scene.add(directionalLight);
+            const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            sunLight.position.set(100, 500, 100);
+            sunLight.castShadow = true;
+            sunLight.shadow.camera.left = -200;
+            sunLight.shadow.camera.right = 200;
+            sunLight.shadow.camera.top = 200;
+            sunLight.shadow.camera.bottom = -200;
+            sunLight.shadow.mapSize.width = 4096;
+            sunLight.shadow.mapSize.height = 4096;
+            scene.add(sunLight);
             
-            // Criar carro VAZ 2108 (simples)
-            createVaz2108();
+            // Céu realista
+            const skyColor = 0x87CEEB;
+            const groundColor = 0x228B22;
+            const intensity = 1;
+            const hemisphereLight = new THREE.HemisphereLight(skyColor, groundColor, intensity);
+            scene.add(hemisphereLight);
             
-            // Criar terreno simples
-            createTerrain();
+            // Criar cenário
+            createEnvironment();
             
-            // Configurar controles touch
-            setupTouchControls();
+            // Criar carro
+            createCar();
             
-            // Esconder loading
-            setTimeout(() => {
-                loadingElement.style.display = 'none';
-            }, 2000);
+            // Física
+            initPhysics();
             
-            // Event listeners
+            // Controles
+            setupControls();
+            
+            // Resize handler
             window.addEventListener('resize', onWindowResize);
-            document.addEventListener('keydown', onKeyDown);
-            document.addEventListener('keyup', onKeyUp);
             
-            // Iniciar loop de animação
+            // Iniciar loop
             animate();
         }
         
-        // ============================================
-        // CRIAR CARRO VAZ 2108 (GEOMETRIA SIMPLES)
-        // ============================================
-        
-        function createVaz2108() {
-            const carGroup = new THREE.Group();
+        // ========== CENÁRIO REALISTA ==========
+        function createEnvironment() {
+            // Textura do solo (imagem real de asfalto)
+            const textureLoader = new THREE.TextureLoader();
+            const groundTexture = textureLoader.load('https://images.unsplash.com/photo-1544984243-ec57ea16fe25?auto=format&fit=crop&w=1200');
+            groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
+            groundTexture.repeat.set(50, 50);
             
-            // Carroceria (corpo principal - estilo VAZ 2108)
-            const bodyGeometry = new THREE.BoxGeometry(3.8, 1.2, 4.5);
-            const bodyMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0xff0000, // Vermelho clássico do Lada
-                shininess: 30 
+            // Terreno
+            const groundGeometry = new THREE.PlaneGeometry(2000, 2000);
+            const groundMaterial = new THREE.MeshStandardMaterial({
+                map: groundTexture,
+                roughness: 0.8,
+                metalness: 0.2
             });
-            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-            body.position.y = 0.6;
-            body.castShadow = true;
-            carGroup.add(body);
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
             
-            // Teto
-            const roofGeometry = new THREE.BoxGeometry(2.2, 0.8, 3);
-            const roofMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
-            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
-            roof.position.set(0, 1.6, -0.2);
-            carGroup.add(roof);
+            // Pista com textura real
+            const roadTexture = textureLoader.load('https://images.unsplash.com/photo-1548357262-8d77b5f7ed78?auto=format&fit=crop&w=1200');
+            roadTexture.wrapS = roadTexture.wrapT = THREE.RepeatWrapping;
+            roadTexture.repeat.set(100, 1);
             
-            // Parabrisas
-            const windshieldGeometry = new THREE.BoxGeometry(2, 0.05, 1.5);
-            const glassMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0x88ccff, 
-                transparent: true, 
-                opacity: 0.3 
+            const roadGeometry = new THREE.PlaneGeometry(20, 2000);
+            const roadMaterial = new THREE.MeshStandardMaterial({
+                map: roadTexture,
+                roughness: 0.7,
+                metalness: 0.1
             });
-            const windshield = new THREE.Mesh(windshieldGeometry, glassMaterial);
-            windshield.position.set(0, 1.4, 0.8);
-            carGroup.add(windshield);
-            
-            // Faróis
-            const headlightGeometry = new THREE.SphereGeometry(0.2, 8, 8);
-            const headlightMaterial = new THREE.MeshPhongMaterial({ color: 0xffffaa });
-            const leftHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
-            const rightHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
-            leftHeadlight.position.set(-1.5, 0.8, 2);
-            rightHeadlight.position.set(1.5, 0.8, 2);
-            carGroup.add(leftHeadlight);
-            carGroup.add(rightHeadlight);
-            
-            // Rodas
-            const wheelGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16);
-            const wheelMaterial = new THREE.MeshPhongMaterial({ color: 0x222222 });
-            
-            for (let i = 0; i < 4; i++) {
-                const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-                wheel.rotation.z = Math.PI / 2;
-                
-                switch(i) {
-                    case 0: // Dianteira esquerda
-                        wheel.position.set(-1.2, 0.4, 1.3);
-                        break;
-                    case 1: // Dianteira direita
-                        wheel.position.set(1.2, 0.4, 1.3);
-                        break;
-                    case 2: // Traseira esquerda
-                        wheel.position.set(-1.2, 0.4, -1.3);
-                        break;
-                    case 3: // Traseira direita
-                        wheel.position.set(1.2, 0.4, -1.3);
-                        break;
-                }
-                
-                carGroup.add(wheel);
-                wheels.push(wheel);
-            }
-            
-            // Adicionar carro à cena
-            carGroup.position.y = 1;
-            scene.add(carGroup);
-            car = carGroup;
-            
-            console.log('ВАЗ 2108 создан!');
-        }
-        
-        // ============================================
-        // CRIAR TERRENO MONTANHOSO
-        // ============================================
-        
-        function createTerrain() {
-            // Terreno simples
-            const terrainGeometry = new THREE.PlaneGeometry(1000, 1000, 100, 100);
-            
-            // Criar montanhas (modificar vertices)
-            const vertices = terrainGeometry.attributes.position.array;
-            for (let i = 0; i < vertices.length; i += 3) {
-                const x = vertices[i];
-                const z = vertices[i + 2];
-                const distance = Math.sqrt(x * x + z * z);
-                
-                // Criar montanhas
-                if (distance < 200) {
-                    const height = Math.sin(x * 0.02) * Math.cos(z * 0.02) * 20;
-                    vertices[i + 1] = height;
-                }
-            }
-            
-            terrainGeometry.computeVertexNormals();
-            
-            const terrainMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0x3a5f0b,
-                side: THREE.DoubleSide
-            });
-            
-            const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
-            terrain.rotation.x = -Math.PI / 2;
-            terrain.receiveShadow = true;
-            scene.add(terrain);
-            
-            // Adicionar algumas árvores
-            for (let i = 0; i < 50; i++) {
-                const tree = createTree();
-                tree.position.set(
-                    (Math.random() - 0.5) * 400,
-                    0,
-                    (Math.random() - 0.5) * 400
-                );
-                scene.add(tree);
-            }
-            
-            // Criar pista simples
-            createRoad();
-        }
-        
-        function createTree() {
-            const treeGroup = new THREE.Group();
-            
-            // Tronco
-            const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.3, 2);
-            const trunkMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
-            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
-            treeGroup.add(trunk);
-            
-            // Copa
-            const leavesGeometry = new THREE.ConeGeometry(1.5, 3, 8);
-            const leavesMaterial = new THREE.MeshPhongMaterial({ color: 0x228B22 });
-            const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
-            leaves.position.y = 2.5;
-            treeGroup.add(leaves);
-            
-            return treeGroup;
-        }
-        
-        function createRoad() {
-            const roadGeometry = new THREE.PlaneGeometry(8, 1000);
-            const roadMaterial = new THREE.MeshPhongMaterial({ color: 0x333333 });
             const road = new THREE.Mesh(roadGeometry, roadMaterial);
             road.rotation.x = -Math.PI / 2;
-            road.position.y = 0.1;
+            road.position.y = 0.01;
+            road.receiveShadow = true;
             scene.add(road);
             
             // Linhas da pista
-            for (let i = -500; i < 500; i += 10) {
-                const lineGeometry = new THREE.PlaneGeometry(0.5, 3);
-                const lineMaterial = new THREE.MeshPhongMaterial({ color: 0xffff00 });
-                const line = new THREE.Mesh(lineGeometry, lineMaterial);
-                line.rotation.x = -Math.PI / 2;
-                line.position.set(0, 0.11, i);
-                scene.add(line);
+            const lineGeometry = new THREE.PlaneGeometry(0.5, 2000);
+            const lineMaterial = new THREE.MeshStandardMaterial({
+                color: 0xFFFF00,
+                emissive: 0xFFFF00,
+                emissiveIntensity: 0.5
+            });
+            
+            // Linha central
+            const centerLine = new THREE.Mesh(lineGeometry, lineMaterial);
+            centerLine.rotation.x = -Math.PI / 2;
+            centerLine.position.y = 0.02;
+            scene.add(centerLine);
+            
+            // Linhas laterais
+            const leftLine = centerLine.clone();
+            leftLine.position.x = -7.5;
+            scene.add(leftLine);
+            
+            const rightLine = centerLine.clone();
+            rightLine.position.x = 7.5;
+            scene.add(rightLine);
+            
+            // Criar montanhas ao redor
+            createMountains();
+            
+            // Árvores e vegetação
+            createVegetation();
+            
+            // Céu
+            const skyboxLoader = new THREE.CubeTextureLoader();
+            const skyboxTexture = skyboxLoader.load([
+                'https://threejs.org/examples/textures/cube/skybox/px.jpg',
+                'https://threejs.org/examples/textures/cube/skybox/nx.jpg',
+                'https://threejs.org/examples/textures/cube/skybox/py.jpg',
+                'https://threejs.org/examples/textures/cube/skybox/ny.jpg',
+                'https://threejs.org/examples/textures/cube/skybox/pz.jpg',
+                'https://threejs.org/examples/textures/cube/skybox/nz.jpg'
+            ]);
+            scene.background = skyboxTexture;
+        }
+        
+        function createMountains() {
+            const mountainGeometry = new THREE.ConeGeometry(100, 300, 32);
+            const mountainMaterial = new THREE.MeshStandardMaterial({
+                color: 0x555555,
+                roughness: 0.9
+            });
+            
+            // Várias montanhas ao redor
+            const positions = [
+                [-500, 0, -500],
+                [500, 0, -500],
+                [-500, 0, 500],
+                [500, 0, 500],
+                [-800, 0, 0],
+                [800, 0, 0]
+            ];
+            
+            positions.forEach(pos => {
+                const mountain = new THREE.Mesh(mountainGeometry, mountainMaterial);
+                mountain.position.set(pos[0], pos[1], pos[2]);
+                mountain.castShadow = true;
+                scene.add(mountain);
+            });
+        }
+        
+        function createVegetation() {
+            // Textura de árvore
+            const treeTexture = new THREE.TextureLoader().load(
+                'https://threejs.org/examples/textures/sprites/tree.png'
+            );
+            
+            // Criar várias árvores
+            for (let i = 0; i < 100; i++) {
+                const treeMaterial = new THREE.SpriteMaterial({
+                    map: treeTexture,
+                    color: 0x228B22
+                });
+                const tree = new THREE.Sprite(treeMaterial);
+                tree.position.set(
+                    (Math.random() - 0.5) * 800,
+                    50,
+                    (Math.random() - 0.5) * 800
+                );
+                tree.scale.set(50, 50, 1);
+                scene.add(tree);
             }
         }
         
-        // ============================================
-        // CONTROLES TOUCH
-        // ============================================
+        // ========== CARRO 3D REALISTA ==========
+        function createCar() {
+            // Criar grupo do carro
+            carModel = new THREE.Group();
+            
+            // Carroceria principal
+            const bodyGeometry = new THREE.BoxGeometry(2, 1, 4);
+            const bodyMaterial = new THREE.MeshStandardMaterial({
+                color: 0xFF0000,
+                roughness: 0.4,
+                metalness: 0.8,
+                envMapIntensity: 1
+            });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.castShadow = true;
+            body.receiveShadow = true;
+            carModel.add(body);
+            
+            // Vidros
+            const glassGeometry = new THREE.BoxGeometry(1.8, 0.8, 1.5);
+            const glassMaterial = new THREE.MeshStandardMaterial({
+                color: 0x88CCFF,
+                transparent: true,
+                opacity: 0.3,
+                roughness: 0.1,
+                metalness: 1
+            });
+            const glass = new THREE.Mesh(glassGeometry, glassMaterial);
+            glass.position.y = 0.6;
+            glass.position.z = 0.5;
+            carModel.add(glass);
+            
+            // Rodas
+            const wheelGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16);
+            const wheelMaterial = new THREE.MeshStandardMaterial({
+                color: 0x222222,
+                roughness: 0.7,
+                metalness: 0.3
+            });
+            
+            const wheelPositions = [
+                [-0.8, -0.2, 1.2],  // Frente esquerda
+                [0.8, -0.2, 1.2],   // Frente direita
+                [-0.8, -0.2, -1.2], // Traseira esquerda
+                [0.8, -0.2, -1.2]   // Traseira direita
+            ];
+            
+            wheelPositions.forEach(pos => {
+                const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                wheel.position.set(pos[0], pos[1], pos[2]);
+                wheel.rotation.z = Math.PI / 2;
+                wheel.castShadow = true;
+                carModel.add(wheel);
+            });
+            
+            // Faróis
+            const headlightGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+            const headlightMaterial = new THREE.MeshStandardMaterial({
+                color: 0xFFFFAA,
+                emissive: 0xFFFFAA,
+                emissiveIntensity: 2
+            });
+            
+            const leftHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+            leftHeadlight.position.set(-0.7, 0.2, 1.9);
+            carModel.add(leftHeadlight);
+            
+            const rightHeadlight = leftHeadlight.clone();
+            rightHeadlight.position.set(0.7, 0.2, 1.9);
+            carModel.add(rightHeadlight);
+            
+            scene.add(carModel);
+            carModel.position.y = 1;
+            
+            console.log('Carro 3D criado com gráficos reais!');
+        }
         
-        function setupTouchControls() {
-            const steerZone = document.getElementById('steerZone');
-            const accZone = document.getElementById('acceleratorZone');
-            const brakeZone = document.getElementById('brakeZone');
+        // ========== FÍSICA PROFISSIONAL ==========
+        function initPhysics() {
+            // Inicializar mundo de física
+            world = new CANNON.World();
+            world.gravity.set(0, -9.82, 0);
+            world.broadphase = new CANNON.SAPBroadphase(world);
+            world.allowSleep = true;
             
-            let steerTouchId = null;
+            // Criar chão físico
+            const groundShape = new CANNON.Plane();
+            const groundBody = new CANNON.Body({
+                mass: 0,
+                shape: groundShape
+            });
+            groundBody.quaternion.setFromAxisAngle(
+                new CANNON.Vec3(1, 0, 0),
+                -Math.PI / 2
+            );
+            world.addBody(groundBody);
+            
+            // Criar corpo do carro físico
+            const carShape = new CANNON.Box(new CANNON.Vec3(1, 0.5, 2));
+            carBody = new CANNON.Body({
+                mass: 1500,
+                shape: carShape,
+                linearDamping: 0.1,
+                angularDamping: 0.3
+            });
+            carBody.position.set(0, 2, 0);
+            world.addBody(carBody);
+        }
+        
+        // ========== CONTROLES TOUCH ==========
+        function setupControls() {
+            const steerZone = document.getElementById('steer-zone');
+            const accelerator = document.getElementById('accelerator');
+            const brake = document.getElementById('brake');
+            
             let steerStartX = 0;
+            let isSteering = false;
             
-            // Controle de direção
+            // Direção
             steerZone.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                if (steerTouchId === null) {
-                    const touch = e.touches[0];
-                    steerTouchId = touch.identifier;
-                    steerStartX = touch.clientX;
-                }
+                isSteering = true;
+                steerStartX = e.touches[0].clientX;
             });
             
             steerZone.addEventListener('touchmove', (e) => {
                 e.preventDefault();
-                if (steerTouchId !== null) {
-                    const touch = Array.from(e.touches).find(t => t.identifier === steerTouchId);
-                    if (touch) {
-                        const deltaX = touch.clientX - steerStartX;
-                        steerAngle = (deltaX / window.innerWidth) * 2;
-                        steerAngle = Math.max(-1, Math.min(1, steerAngle));
-                    }
+                if (isSteering) {
+                    const deltaX = e.touches[0].clientX - steerStartX;
+                    steerAngle = (deltaX / window.innerWidth) * Math.PI / 4;
+                    steerAngle = Math.max(-Math.PI/4, Math.min(Math.PI/4, steerAngle));
                 }
             });
             
-            steerZone.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                steerTouchId = null;
+            steerZone.addEventListener('touchend', () => {
+                isSteering = false;
                 steerAngle = 0;
             });
             
             // Acelerador
-            accZone.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                isAccelerating = true;
-                accZone.style.background = 'rgba(0, 255, 0, 0.3)';
+            accelerator.addEventListener('touchstart', () => {
+                engineForce = 500;
+                accelerator.style.opacity = '0.6';
             });
             
-            accZone.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                isAccelerating = false;
-                accZone.style.background = 'rgba(0, 255, 0, 0.1)';
+            accelerator.addEventListener('touchend', () => {
+                engineForce = 0;
+                accelerator.style.opacity = '0.3';
             });
             
             // Freio
-            brakeZone.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                isBraking = true;
-                brakeZone.style.background = 'rgba(255, 0, 0, 0.3)';
+            brake.addEventListener('touchstart', () => {
+                brakeForce = 1000;
+                brake.style.opacity = '0.6';
             });
             
-            brakeZone.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                isBraking = false;
-                brakeZone.style.background = 'rgba(255, 0, 0, 0.1)';
+            brake.addEventListener('touchend', () => {
+                brakeForce = 0;
+                brake.style.opacity = '0.3';
             });
             
-            // Trocar câmera com toque duplo
-            let lastTap = 0;
-            document.addEventListener('touchstart', (e) => {
-                const currentTime = new Date().getTime();
-                const tapLength = currentTime - lastTap;
-                
-                if (tapLength < 500 && tapLength > 0) {
-                    // Toque duplo - trocar câmera
-                    switchCamera();
+            // Controles de teclado para teste no PC
+            document.addEventListener('keydown', (e) => {
+                switch(e.key) {
+                    case 'ArrowUp': engineForce = 500; break;
+                    case 'ArrowDown': brakeForce = 1000; break;
+                    case 'ArrowLeft': steerAngle = Math.PI/4; break;
+                    case 'ArrowRight': steerAngle = -Math.PI/4; break;
                 }
-                lastTap = currentTime;
             });
-        }
-        
-        // ============================================
-        // CONTROLES DE CÂMERA
-        // ============================================
-        
-        function switchCamera() {
-            const modes = ['driver', 'hood', 'drone'];
-            const currentIndex = modes.indexOf(cameraMode);
-            cameraMode = modes[(currentIndex + 1) % modes.length];
-            updateCamera();
-        }
-        
-        function updateCamera() {
-            if (!car) return;
             
-            const carPos = car.position;
-            
-            switch(cameraMode) {
-                case 'driver':
-                    // Vista do motorista
-                    camera.position.set(
-                        carPos.x,
-                        carPos.y + 1.6,
-                        carPos.z + 1
-                    );
-                    camera.lookAt(carPos.x, carPos.y + 1, carPos.z + 10);
-                    camModeElement.textContent = 'Водитель';
-                    break;
-                    
-                case 'hood':
-                    // Vista do capô
-                    camera.position.set(
-                        carPos.x,
-                        carPos.y + 1.2,
-                        carPos.z + 2
-                    );
-                    camera.lookAt(carPos.x, carPos.y + 1, carPos.z + 20);
-                    camModeElement.textContent = 'Капот';
-                    break;
-                    
-                case 'drone':
-                    // Vista drone
-                    camera.position.set(
-                        carPos.x + 10,
-                        carPos.y + 15,
-                        carPos.z + 10
-                    );
-                    camera.lookAt(carPos.x, carPos.y, carPos.z);
-                    camModeElement.textContent = 'Дрон';
-                    break;
-            }
-        }
-        
-        // ============================================
-        // FÍSICA DO CARRO (SIMPLIFICADA)
-        // ============================================
-        
-        function updateCar(deltaTime) {
-            if (!car) return;
-            
-            // Aplicar aceleração
-            if (isAccelerating) {
-                speed += 5 * deltaTime;
-                rpm += 100 * deltaTime;
-            } else if (isBraking) {
-                speed -= 10 * deltaTime;
-                rpm -= 50 * deltaTime;
-            } else {
-                // Desaceleração natural
-                speed *= 0.98;
-                rpm *= 0.95;
-            }
-            
-            // Limites
-            speed = Math.max(0, Math.min(180, speed));
-            rpm = Math.max(800, Math.min(6000, rpm));
-            
-            // Atualizar marcha
-            if (speed < 20) gear = '1';
-            else if (speed < 40) gear = '2';
-            else if (speed < 60) gear = '3';
-            else if (speed < 80) gear = '4';
-            else gear = '5';
-            
-            if (speed === 0) gear = 'N';
-            
-            // Mover carro
-            const moveDistance = (speed / 3.6) * deltaTime;
-            const rotateAngle = steerAngle * 0.05 * deltaTime;
-            
-            car.rotation.y -= rotateAngle;
-            car.translateZ(-moveDistance);
-            
-            // Atualizar rodas
-            wheels.forEach((wheel, index) => {
-                // Rodas dianteiras viram
-                if (index < 2) {
-                    wheel.rotation.y = steerAngle * 0.5;
+            document.addEventListener('keyup', (e) => {
+                switch(e.key) {
+                    case 'ArrowUp': engineForce = 0; break;
+                    case 'ArrowDown': brakeForce = 0; break;
+                    case 'ArrowLeft':
+                    case 'ArrowRight': steerAngle = 0; break;
                 }
-                
-                // Todas rodas giram
-                wheel.rotation.x += moveDistance * 5;
             });
-            
-            // Atualizar combustível
-            fuel = Math.max(0, fuel - (rpm / 10000) * deltaTime);
-            
-            // Atualizar UI
-            updateUI();
-            
-            // Atualizar câmera
-            updateCamera();
         }
         
-        function updateUI() {
-            speedElement.textContent = `${Math.floor(speed)} км/ч`;
-            rpmElement.textContent = `${Math.floor(rpm)} об/мин`;
-            gearElement.textContent = gear;
-            fuelElement.textContent = `${Math.floor(fuel)} %`;
-        }
-        
-        // ============================================
-        // CONTROLES DE TECLADO (PARA TESTE NO PC)
-        // ============================================
-        
-        function onKeyDown(event) {
-            switch(event.key) {
-                case 'ArrowUp':
-                    isAccelerating = true;
-                    break;
-                case 'ArrowDown':
-                    isBraking = true;
-                    break;
-                case 'ArrowLeft':
-                    steerAngle = 0.5;
-                    break;
-                case 'ArrowRight':
-                    steerAngle = -0.5;
-                    break;
-                case 'c':
-                case 'C':
-                    switchCamera();
-                    break;
-                case ' ':
-                    // Freio de mão
-                    speed *= 0.5;
-                    break;
+        // ========== ATUALIZAR FÍSICA ==========
+        function updatePhysics(deltaTime) {
+            // Atualizar mundo de física
+            world.step(deltaTime);
+            
+            // Aplicar forças do motor
+            const force = new CANNON.Vec3(
+                -Math.sin(carBody.quaternion.y) * engineForce,
+                0,
+                -Math.cos(carBody.quaternion.y) * engineForce
+            );
+            carBody.applyForce(force, carBody.position);
+            
+            // Aplicar força de freio
+            if (brakeForce > 0) {
+                const brakeForceVec = new CANNON.Vec3(
+                    carBody.velocity.x * -brakeForce,
+                    0,
+                    carBody.velocity.z * -brakeForce
+                );
+                carBody.applyForce(brakeForceVec, carBody.position);
+            }
+            
+            // Aplicar direção
+            carBody.angularVelocity.y = steerAngle * 2;
+            
+            // Sincronizar modelo 3D com física
+            if (carModel && carBody) {
+                carModel.position.copy(carBody.position);
+                carModel.quaternion.copy(carBody.quaternion);
+                
+                // Calcular velocidade
+                const velocity = carBody.velocity.length();
+                speed = Math.abs(velocity * 3.6); // m/s para km/h
+                rpm = Math.min(8000, engineForce * 10 + speed * 80);
+                
+                // Atualizar UI
+                document.getElementById('speed').textContent = 
+                    Math.floor(speed) + ' km/h';
+                document.getElementById('rpm').textContent = 
+                    Math.floor(rpm);
+                document.getElementById('gear').textContent = 
+                    speed < 10 ? 'N' : speed < 30 ? '1' : speed < 60 ? '2' : '3';
             }
         }
         
-        function onKeyUp(event) {
-            switch(event.key) {
-                case 'ArrowUp':
-                    isAccelerating = false;
-                    break;
-                case 'ArrowDown':
-                    isBraking = false;
-                    break;
-                case 'ArrowLeft':
-                case 'ArrowRight':
-                    steerAngle = 0;
-                    break;
-            }
-        }
-        
-        // ============================================
-        // LOOP DE ANIMAÇÃO
-        // ============================================
-        
-        let clock = new THREE.Clock();
-        
+        // ========== LOOP DE ANIMAÇÃO ==========
         function animate() {
             requestAnimationFrame(animate);
             
-            const deltaTime = clock.getDelta();
+            const deltaTime = 1/60; // Física em 60 FPS
             
-            // Atualizar física do carro
-            updateCar(deltaTime);
+            // Atualizar física
+            updatePhysics(deltaTime);
             
-            // Atualizar controles da câmera
-            controls.update();
+            // Atualizar câmera (seguir carro)
+            if (carBody) {
+                camera.position.x = carBody.position.x;
+                camera.position.z = carBody.position.z + 8;
+                camera.position.y = carBody.position.y + 3;
+                camera.lookAt(carBody.position.x, carBody.position.y + 1, carBody.position.z);
+            }
             
             // Renderizar
             renderer.render(scene, camera);
@@ -761,21 +579,8 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
         
-        // ============================================
-        // INICIAR TUDO
-        // ============================================
-        
-        // Iniciar quando a página carregar
-        window.addEventListener('load', init);
-        
-        // Instruções
-        console.log('ВАЗ 2108 СИМУЛЯТОР ЗАГРУЖЕН!');
-        console.log('Управление:');
-        console.log('- Тач-зоны для руления и педалей');
-        console.log('- Двойное нажатие для смены камеры');
-        console.log('- Стрелки для управления на ПК');
-        console.log('- C для смены камеры на ПК');
-        
+        // ========== INICIAR TUDO ==========
+        init();
     </script>
 </body>
 </html>
