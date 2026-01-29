@@ -1,41 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Sistema Vendas - FIREBASE FUNCIONANDO</title>
+    <title>Sistema Vendas - PERMISSÃO CORRIGIDA</title>
     <meta charset="UTF-8">
     <style>
-        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1 { color: #333; text-align: center; }
-        .box { background: #e3f2fd; padding: 15px; margin: 15px 0; border-radius: 5px; }
-        input, select, button { width: 100%; padding: 10px; margin: 5px 0; box-sizing: border-box; }
-        button { background: #2196F3; color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background: #0b7dda; }
-        .status { padding: 10px; margin: 10px 0; border-radius: 5px; text-align: center; }
-        .success { background: #d4edda; color: #155724; }
-        .error { background: #f8d7da; color: #721c24; }
-        .lista { max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: #fafafa; }
+        body { font-family: Arial; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        h1 { color: #333; text-align: center; margin-bottom: 30px; }
+        .box { background: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 10px; border-left: 5px solid #4285f4; }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 2px solid #ddd; }
+        button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; font-weight: bold; cursor: pointer; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        .status { padding: 12px; margin: 10px 0; border-radius: 8px; text-align: center; font-weight: bold; }
+        .success { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+        .lista { max-height: 200px; overflow-y: auto; border: 2px solid #e9ecef; padding: 15px; background: white; border-radius: 8px; }
+        .link { text-align: center; margin: 20px 0; }
+        a { color: #4285f4; font-weight: bold; text-decoration: none; }
+        a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>✅ SISTEMA FUNCIONANDO AGORA!</h1>
+        <h1>🔓 SISTEMA COM PERMISSÃO LIBERADA</h1>
         
-        <!-- CADASTRO DE PRODUTO -->
         <div class="box">
             <h2>➕ CADASTRAR PRODUTO</h2>
-            <input type="text" id="codigo" placeholder="Código (ex: PROD001)">
+            <input type="text" id="codigo" placeholder="Código (ex: CAM001)">
             <input type="text" id="nome" placeholder="Nome do produto">
             <input type="number" id="preco" placeholder="Preço R$" step="0.01">
-            <input type="number" id="estoque" placeholder="Quantidade em estoque">
-            <button onclick="cadastrarProduto()">SALVAR NO FIREBASE</button>
+            <input type="number" id="estoque" placeholder="Estoque inicial">
+            <button onclick="cadastrarProduto()">✅ SALVAR NO FIREBASE</button>
             <div id="status1" class="status"></div>
             
             <h3>📦 Produtos Cadastrados:</h3>
-            <div class="lista" id="produtosLista">Carregando...</div>
+            <div class="lista" id="produtosLista">Carregando produtos...</div>
         </div>
         
-        <!-- REGISTRAR VENDA -->
         <div class="box">
             <h2>💰 REGISTRAR VENDA</h2>
             <select id="produtoSelect">
@@ -43,29 +44,26 @@
             </select>
             <input type="number" id="quantidade" placeholder="Quantidade" value="1" min="1">
             <input type="text" id="cliente" placeholder="Nome do cliente">
-            <button onclick="registrarVenda()">REGISTRAR VENDA</button>
+            <button onclick="registrarVenda()">💰 REGISTRAR VENDA</button>
             <div id="status2" class="status"></div>
             
             <h3>🛒 Últimas Vendas:</h3>
-            <div class="lista" id="vendasLista">Carregando...</div>
+            <div class="lista" id="vendasLista">Carregando vendas...</div>
         </div>
         
-        <!-- VISUALIZAR DADOS -->
-        <div class="box">
-            <h2>📊 VISUALIZAR NO FIREBASE</h2>
-            <p>Acesse para ver seus dados:</p>
-            <a href="https://deliveryapp-a6c48-default-rtdb.firebaseio.com/" target="_blank" style="color: #2196F3; font-weight: bold;">
-                🔗 CLIQUE AQUI PARA VER SEUS DADOS
+        <div class="link">
+            <a href="https://deliveryapp-a6c48-default-rtdb.firebaseio.com/" target="_blank">
+                🔗 CLIQUE AQUI PARA VER OS DADOS NO FIREBASE
             </a>
-            <p>Após cadastrar, atualize essa página para ver os dados.</p>
         </div>
     </div>
 
-    <!-- SÓ ISSO AQUI EMBAIXO - NADA MAIS -->
+    <!-- SÓ ESTAS DUAS BIBLIOTECAS -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
     <script>
-        // SUAS CONFIGURAÇÕES (JÁ ESTÃO CERTAS)
+        // CONFIGURAÇÃO DO SEU FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyDhxzoRmrYhuIwKkFtlF_H36NklLwVXSN0",
             authDomain: "deliveryapp-a6c48.firebaseapp.com",
@@ -76,117 +74,126 @@
             appId: "1:547092721941:web:b0feaefe7d6265c32bf91c"
         };
 
-        // INICIALIZAR FIREBASE (SÓ ISSO)
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        
-        console.log("✅ Firebase iniciado com sucesso!");
-        alert("Sistema conectado ao Firebase! Pode começar a usar.");
+        // INICIALIZAR FIREBASE
+        try {
+            const app = firebase.initializeApp(firebaseConfig);
+            const database = firebase.database();
+            console.log("✅ Firebase conectado com sucesso!");
+            
+            // Testar conexão
+            database.ref('.info/connected').on('value', (snap) => {
+                if (snap.val() === true) {
+                    showStatus('status1', '✅ CONECTADO AO FIREBASE! Pode começar.', 'success');
+                }
+            });
+        } catch (error) {
+            console.error("❌ Erro ao conectar:", error);
+            alert("Erro ao conectar ao Firebase: " + error.message);
+        }
 
-        // ========== FUNÇÕES SIMPLES QUE FUNCIONAM ==========
+        // ========== FUNÇÕES PRINCIPAIS ==========
         
         // 1. CADASTRAR PRODUTO
         window.cadastrarProduto = function() {
-            const codigo = document.getElementById('codigo').value;
-            const nome = document.getElementById('nome').value;
+            const codigo = document.getElementById('codigo').value.trim();
+            const nome = document.getElementById('nome').value.trim();
             const preco = document.getElementById('preco').value;
             const estoque = document.getElementById('estoque').value;
             
             if (!codigo || !nome || !preco || !estoque) {
-                showStatus('status1', 'Preencha todos os campos!', 'error');
+                showStatus('status1', '❌ Preencha todos os campos!', 'error');
                 return;
             }
             
-            // Criar ID único
-            const id = Date.now().toString();
-            
-            // SALVAR NO FIREBASE (ASSIM QUE FUNCIONA)
-            database.ref('produtos/' + id).set({
-                id: id,
+            const produtoId = Date.now().toString();
+            const produtoData = {
+                id: produtoId,
                 codigo: codigo,
                 nome: nome,
                 preco: parseFloat(preco),
                 estoque: parseInt(estoque),
                 estoqueAtual: parseInt(estoque),
-                data: new Date().toISOString()
-            })
-            .then(() => {
-                showStatus('status1', '✅ Produto salvo no Firebase!', 'success');
-                // Limpar campos
-                document.getElementById('codigo').value = '';
-                document.getElementById('nome').value = '';
-                document.getElementById('preco').value = '';
-                document.getElementById('estoque').value = '';
-            })
-            .catch((error) => {
-                showStatus('status1', '❌ Erro: ' + error.message, 'error');
-            });
+                dataCadastro: new Date().toISOString()
+            };
+            
+            // SALVAR NO FIREBASE
+            database.ref('produtos/' + produtoId).set(produtoData)
+                .then(() => {
+                    showStatus('status1', '✅ Produto salvo com sucesso! ID: ' + produtoId, 'success');
+                    // Limpar campos
+                    document.getElementById('codigo').value = '';
+                    document.getElementById('nome').value = '';
+                    document.getElementById('preco').value = '';
+                    document.getElementById('estoque').value = '';
+                })
+                .catch((error) => {
+                    showStatus('status1', '❌ Erro ao salvar: ' + error.message, 'error');
+                    console.error("Erro detalhado:", error);
+                });
         };
         
         // 2. REGISTRAR VENDA
         window.registrarVenda = function() {
             const produtoId = document.getElementById('produtoSelect').value;
-            const quantidade = document.getElementById('quantidade').value;
-            const cliente = document.getElementById('cliente').value;
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+            const cliente = document.getElementById('cliente').value.trim();
             
             if (!produtoId || !quantidade || !cliente) {
-                showStatus('status2', 'Preencha todos os campos!', 'error');
+                showStatus('status2', '❌ Preencha todos os campos!', 'error');
                 return;
             }
             
             // Buscar produto
             database.ref('produtos/' + produtoId).once('value')
-            .then((snapshot) => {
-                const produto = snapshot.val();
-                if (!produto) {
-                    showStatus('status2', 'Produto não encontrado!', 'error');
-                    return;
-                }
-                
-                if (parseInt(quantidade) > produto.estoqueAtual) {
-                    showStatus('status2', `Estoque insuficiente! Temos ${produto.estoqueAtual} unidades`, 'error');
-                    return;
-                }
-                
-                // Criar venda
-                const vendaId = Date.now().toString();
-                const valorTotal = produto.preco * quantidade;
-                
-                // Salvar venda
-                return database.ref('vendas/' + vendaId).set({
-                    id: vendaId,
-                    produtoId: produtoId,
-                    produtoNome: produto.nome,
-                    quantidade: parseInt(quantidade),
-                    valorTotal: valorTotal,
-                    cliente: cliente,
-                    data: new Date().toISOString(),
-                    timestamp: Date.now()
+                .then((snapshot) => {
+                    const produto = snapshot.val();
+                    if (!produto) throw new Error('Produto não encontrado');
+                    
+                    if (quantidade > produto.estoqueAtual) {
+                        throw new Error(`Estoque insuficiente! Disponível: ${produto.estoqueAtual}`);
+                    }
+                    
+                    // Criar venda
+                    const vendaId = Date.now().toString();
+                    const vendaData = {
+                        id: vendaId,
+                        produtoId: produtoId,
+                        produtoCodigo: produto.codigo,
+                        produtoNome: produto.nome,
+                        quantidade: quantidade,
+                        valorUnitario: produto.preco,
+                        valorTotal: produto.preco * quantidade,
+                        cliente: cliente,
+                        dataVenda: new Date().toISOString(),
+                        timestamp: Date.now()
+                    };
+                    
+                    // Salvar venda
+                    return database.ref('vendas/' + vendaId).set(vendaData)
+                        .then(() => {
+                            // Atualizar estoque
+                            const novoEstoque = produto.estoqueAtual - quantidade;
+                            return database.ref('produtos/' + produtoId).update({
+                                estoqueAtual: novoEstoque
+                            });
+                        });
                 })
                 .then(() => {
-                    // Atualizar estoque
-                    const novoEstoque = produto.estoqueAtual - parseInt(quantidade);
-                    return database.ref('produtos/' + produtoId).update({
-                        estoqueAtual: novoEstoque
-                    });
+                    showStatus('status2', '✅ Venda registrada com sucesso!', 'success');
+                    document.getElementById('cliente').value = '';
+                    document.getElementById('quantidade').value = '1';
+                })
+                .catch((error) => {
+                    showStatus('status2', '❌ Erro: ' + error.message, 'error');
                 });
-            })
-            .then(() => {
-                showStatus('status2', '✅ Venda registrada com sucesso!', 'success');
-                document.getElementById('cliente').value = '';
-                document.getElementById('quantidade').value = '1';
-            })
-            .catch((error) => {
-                showStatus('status2', '❌ Erro: ' + error.message, 'error');
-            });
         };
         
-        // 3. MOSTRAR STATUS
+        // 3. FUNÇÃO DE STATUS
         function showStatus(elementId, message, type) {
             const element = document.getElementById(elementId);
             element.textContent = message;
             element.className = 'status ' + type;
-            setTimeout(() => element.textContent = '', 3000);
+            setTimeout(() => element.textContent = '', 4000);
         }
         
         // ========== CARREGAR DADOS EM TEMPO REAL ==========
@@ -197,18 +204,19 @@
             const lista = document.getElementById('produtosLista');
             const select = document.getElementById('produtoSelect');
             
-            // Limpar
             lista.innerHTML = '';
             select.innerHTML = '<option value="">Selecione um produto</option>';
             
-            // Adicionar cada produto
             Object.entries(produtos).forEach(([id, produto]) => {
-                // Na lista
-                const div = document.createElement('div');
-                div.innerHTML = `📦 ${produto.codigo} - ${produto.nome} - R$ ${produto.preco} (Estoque: ${produto.estoqueAtual})`;
-                lista.appendChild(div);
+                // Adicionar à lista
+                const item = document.createElement('div');
+                item.style.padding = '8px';
+                item.style.borderBottom = '1px solid #eee';
+                item.innerHTML = `📦 <strong>${produto.codigo}</strong> - ${produto.nome}<br>
+                                 💰 R$ ${produto.preco} | 📊 Estoque: ${produto.estoqueAtual}`;
+                lista.appendChild(item);
                 
-                // No select (só se tiver estoque)
+                // Adicionar ao select (se tiver estoque)
                 if (produto.estoqueAtual > 0) {
                     const option = document.createElement('option');
                     option.value = id;
@@ -218,7 +226,7 @@
             });
             
             if (Object.keys(produtos).length === 0) {
-                lista.innerHTML = 'Nenhum produto cadastrado ainda.';
+                lista.innerHTML = '<div style="text-align: center; color: #666;">Nenhum produto cadastrado ainda.</div>';
             }
         });
         
@@ -233,19 +241,31 @@
             const vendasArray = Object.values(vendas);
             vendasArray.sort((a, b) => b.timestamp - a.timestamp);
             
-            // Mostrar últimas 10
-            vendasArray.slice(0, 10).forEach(venda => {
-                const div = document.createElement('div');
-                div.innerHTML = `💰 ${venda.produtoNome} - ${venda.quantidade}x - R$ ${venda.valorTotal} - ${venda.cliente}`;
-                lista.appendChild(div);
+            // Mostrar últimas 5
+            vendasArray.slice(0, 5).forEach(venda => {
+                const item = document.createElement('div');
+                item.style.padding = '8px';
+                item.style.borderBottom = '1px solid #eee';
+                item.innerHTML = `💰 <strong>${venda.produtoNome}</strong><br>
+                                 👤 ${venda.cliente} | 📦 ${venda.quantidade}x | 💰 R$ ${venda.valorTotal}<br>
+                                 <small>${new Date(venda.dataVenda).toLocaleString()}</small>`;
+                lista.appendChild(item);
             });
             
             if (vendasArray.length === 0) {
-                lista.innerHTML = 'Nenhuma venda registrada ainda.';
+                lista.innerHTML = '<div style="text-align: center; color: #666;">Nenhuma venda registrada ainda.</div>';
             }
         });
         
-        console.log("✅ Sistema pronto para usar!");
+        // Verificar se tem permissão
+        setTimeout(() => {
+            database.ref('teste').set({teste: Date.now()})
+                .then(() => console.log("✅ Permissões estão OK!"))
+                .catch(error => {
+                    console.error("❌ Erro de permissão:", error);
+                    showStatus('status1', '⚠️ Configure as regras do Firebase (veja instruções)', 'error');
+                });
+        }, 1000);
     </script>
 </body>
 </html>
