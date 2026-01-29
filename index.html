@@ -3,379 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Vendas - Firebase</title>
+    <title>Sistema de Vendas - Firebase Realtime</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 3px solid #667eea;
-        }
-        
-        h1 {
-            color: #333;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            color: #666;
-            font-size: 1.2em;
-        }
-        
-        .sections {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-        
-        .section {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 25px;
-            border: 2px solid #e9ecef;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        
-        .section:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        
-        h2 {
-            color: #444;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        h2::before {
-            content: '';
-            display: inline-block;
-            width: 10px;
-            height: 30px;
-            background: #667eea;
-            border-radius: 5px;
-        }
-        
-        .cadastro h2::before { background: #4CAF50; }
-        .vendas h2::before { background: #2196F3; }
-        .dashboard h2::before { background: #FF9800; }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 500;
-        }
-        
-        input, select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-        
-        input:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            width: 100%;
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border-top: 5px solid #667eea;
-        }
-        
-        .stat-value {
-            font-size: 2em;
-            font-weight: bold;
-            color: #333;
-            margin: 10px 0;
-        }
-        
-        .stat-label {
-            color: #666;
-            font-size: 0.9em;
-        }
-        
-        .lista {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 20px;
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-        }
-        
-        .item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .item:last-child {
-            border-bottom: none;
-        }
-        
-        .item-codigo {
-            font-weight: bold;
-            color: #667eea;
-        }
-        
-        .item-nome {
-            flex-grow: 1;
-            margin: 0 15px;
-        }
-        
-        .item-preco {
-            color: #4CAF50;
-            font-weight: bold;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
-        
-        .status {
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-            text-align: center;
-            font-weight: bold;
-        }
-        
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background: #f0f2f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; margin-bottom: 20px; text-align: center; }
+        .sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+        .section { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; }
+        h2 { color: #444; margin-bottom: 15px; border-bottom: 2px solid #4285f4; padding-bottom: 5px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #666; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #4285f4; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; width: 100%; }
+        button:hover { background: #3367d6; }
+        .lista { max-height: 300px; overflow-y: auto; margin-top: 10px; border: 1px solid #ddd; border-radius: 4px; padding: 10px; }
+        .item { padding: 8px; border-bottom: 1px solid #eee; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; text-align: center; }
         .success { background: #d4edda; color: #155724; }
         .error { background: #f8d7da; color: #721c24; }
-        
-        .filters {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        @media (max-width: 768px) {
-            .sections {
-                grid-template-columns: 1fr;
-            }
-            
-            .dashboard-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 15px 0; }
+        .stat-card { background: #f8f9fa; padding: 15px; border-radius: 6px; text-align: center; border-left: 4px solid #4285f4; }
+        .stat-value { font-size: 1.8em; font-weight: bold; color: #333; }
+        .stat-label { color: #666; font-size: 0.9em; }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>🏪 Sistema de Vendas Firebase</h1>
-            <p class="subtitle">Cadastro de produtos, registro de vendas e dashboard em tempo real</p>
-        </header>
+        <h1>🏪 Sistema Simples de Vendas (Realtime Database)</h1>
         
         <div class="sections">
-            <!-- SEÇÃO 1: CADASTRO DE PRODUTOS -->
-            <div class="section cadastro">
+            <!-- CADASTRO -->
+            <div class="section">
                 <h2>➕ Cadastrar Produto</h2>
                 <div class="form-group">
-                    <label for="codigo">Código do Produto:</label>
-                    <input type="text" id="codigo" placeholder="Ex: PROD001" maxlength="10">
+                    <input type="text" id="codigo" placeholder="Código (ex: CAM001)">
                 </div>
-                
                 <div class="form-group">
-                    <label for="nome">Nome do Produto:</label>
-                    <input type="text" id="nome" placeholder="Ex: Camiseta Básica">
+                    <input type="text" id="nome" placeholder="Nome (ex: Camiseta Azul)">
                 </div>
-                
                 <div class="form-group">
-                    <label for="preco">Preço (R$):</label>
-                    <input type="number" id="preco" placeholder="Ex: 29.90" step="0.01" min="0">
+                    <input type="number" id="preco" placeholder="Preço R$ (ex: 29.90)" step="0.01">
                 </div>
-                
                 <div class="form-group">
-                    <label for="estoque">Quantidade em Estoque:</label>
-                    <input type="number" id="estoque" placeholder="Ex: 100" min="0">
+                    <input type="number" id="estoque" placeholder="Estoque (ex: 100)" min="0">
                 </div>
-                
-                <div class="form-group">
-                    <label for="categoria">Categoria:</label>
-                    <select id="categoria">
-                        <option value="Roupas">Roupas</option>
-                        <option value="Eletrônicos">Eletrônicos</option>
-                        <option value="Alimentos">Alimentos</option>
-                        <option value="Bebidas">Bebidas</option>
-                        <option value="Outros">Outros</option>
-                    </select>
-                </div>
-                
-                <button onclick="cadastrarProduto()">📦 Salvar Produto no Banco</button>
+                <button onclick="cadastrarProduto()">Salvar Produto</button>
                 <div id="status-cadastro" class="status"></div>
                 
-                <h3 style="margin-top: 30px;">📋 Produtos Cadastrados</h3>
+                <h3>📋 Produtos:</h3>
                 <div class="lista" id="lista-produtos">
-                    <div class="loading">Carregando produtos...</div>
+                    <div>Carregando...</div>
                 </div>
             </div>
             
-            <!-- SEÇÃO 2: REGISTRO DE VENDAS -->
-            <div class="section vendas">
+            <!-- VENDAS -->
+            <div class="section">
                 <h2>💰 Registrar Venda</h2>
-                
                 <div class="form-group">
-                    <label for="produtoVenda">Selecione o Produto:</label>
-                    <select id="produtoVenda">
-                        <option value="">Carregando produtos...</option>
+                    <select id="produtoSelect">
+                        <option>Carregando produtos...</option>
                     </select>
                 </div>
-                
                 <div class="form-group">
-                    <label for="quantidade">Quantidade Vendida:</label>
-                    <input type="number" id="quantidade" placeholder="Ex: 2" min="1" value="1">
+                    <input type="number" id="quantidade" placeholder="Quantidade" value="1" min="1">
                 </div>
-                
                 <div class="form-group">
-                    <label for="cliente">Nome do Cliente:</label>
-                    <input type="text" id="cliente" placeholder="Ex: João Silva">
+                    <input type="text" id="cliente" placeholder="Nome do cliente">
                 </div>
-                
-                <div class="form-group">
-                    <label for="formaPagamento">Forma de Pagamento:</label>
-                    <select id="formaPagamento">
-                        <option value="Dinheiro">Dinheiro</option>
-                        <option value="Cartão Débito">Cartão Débito</option>
-                        <option value="Cartão Crédito">Cartão Crédito</option>
-                        <option value="PIX">PIX</option>
-                    </select>
-                </div>
-                
-                <button onclick="registrarVenda()">💳 Registrar Venda no Banco</button>
+                <button onclick="registrarVenda()">Registrar Venda</button>
                 <div id="status-venda" class="status"></div>
                 
-                <h3 style="margin-top: 30px;">🛒 Últimas Vendas</h3>
+                <h3>🛒 Últimas Vendas:</h3>
                 <div class="lista" id="lista-vendas">
-                    <div class="loading">Carregando vendas...</div>
+                    <div>Carregando...</div>
                 </div>
             </div>
             
-            <!-- SEÇÃO 3: DASHBOARD -->
-            <div class="section dashboard">
-                <h2>📊 Dashboard em Tempo Real</h2>
-                
+            <!-- DASHBOARD -->
+            <div class="section">
+                <h2>📊 Dashboard</h2>
                 <div class="dashboard-grid">
                     <div class="stat-card">
-                        <div class="stat-label">Total de Produtos</div>
                         <div class="stat-value" id="total-produtos">0</div>
-                        <div class="stat-label">cadastrados</div>
+                        <div class="stat-label">Produtos</div>
                     </div>
-                    
                     <div class="stat-card">
-                        <div class="stat-label">Total de Vendas</div>
                         <div class="stat-value" id="total-vendas">0</div>
-                        <div class="stat-label">realizadas</div>
+                        <div class="stat-label">Vendas</div>
                     </div>
-                    
                     <div class="stat-card">
-                        <div class="stat-label">Faturamento Total</div>
                         <div class="stat-value" id="faturamento">R$ 0</div>
-                        <div class="stat-label">acumulado</div>
+                        <div class="stat-label">Faturamento</div>
                     </div>
-                    
                     <div class="stat-card">
-                        <div class="stat-label">Venda Hoje</div>
                         <div class="stat-value" id="vendas-hoje">0</div>
-                        <div class="stat-label">unidades</div>
+                        <div class="stat-label">Vendas Hoje</div>
                     </div>
                 </div>
                 
-                <div style="margin-top: 30px;">
-                    <h3>📈 Produtos Mais Vendidos</h3>
-                    <div id="top-produtos" class="lista">
-                        <div class="loading">Analisando dados...</div>
-                    </div>
-                </div>
-                
-                <div class="filters">
-                    <button onclick="filtrarHoje()" style="background: #4CAF50;">Hoje</button>
-                    <button onclick="filtrarSemana()" style="background: #2196F3;">Esta Semana</button>
-                    <button onclick="filtrarMes()" style="background: #FF9800;">Este Mês</button>
-                    <button onclick="filtrarTodos()" style="background: #9C27B0;">Todos</button>
+                <h3>📈 Produtos Mais Vendidos:</h3>
+                <div class="lista" id="top-produtos">
+                    <div>Carregando...</div>
                 </div>
             </div>
         </div>
-        
-        <footer style="text-align: center; margin-top: 40px; color: #666; padding-top: 20px; border-top: 1px solid #eee;">
-            <p>🔥 Sistema conectado ao Firebase | 📊 Dados em tempo real | 🚀 Hospedado no GitHub/Vercel</p>
-        </footer>
     </div>
 
-    <!-- FIREBASE SDK -->
-    <script type="module">
-        // SUAS CONFIGURAÇÕES DO FIREBASE
+    <!-- Firebase Realtime Database -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
+    <script>
+        // SUAS CONFIGURAÇÕES
         const firebaseConfig = {
             apiKey: "AIzaSyDhxzoRmrYhuIwKkFtlF_H36NklLwVXSN0",
             authDomain: "deliveryapp-a6c48.firebaseapp.com",
@@ -386,144 +125,118 @@
             appId: "1:547092721941:web:b0feaefe7d6265c32bf91c"
         };
 
-        // Importar Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { 
-            getFirestore, 
-            collection, 
-            addDoc, 
-            getDocs, 
-            onSnapshot,
-            query,
-            orderBy,
-            where,
-            serverTimestamp,
-            updateDoc,
-            doc,
-            increment
-        } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-
         // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // Referências aos nós do banco
+        const produtosRef = database.ref('produtos');
+        const vendasRef = database.ref('vendas');
 
-        // Variáveis globais
-        let produtos = [];
-        let filtroAtual = 'todos';
-
-        // ========== FUNÇÃO: CADASTRAR PRODUTO ==========
-        window.cadastrarProduto = async function() {
+        // FUNÇÃO: Cadastrar Produto
+        window.cadastrarProduto = function() {
             const codigo = document.getElementById('codigo').value.trim();
             const nome = document.getElementById('nome').value.trim();
             const preco = parseFloat(document.getElementById('preco').value);
             const estoque = parseInt(document.getElementById('estoque').value);
-            const categoria = document.getElementById('categoria').value;
             
-            // Validação
             if (!codigo || !nome || !preco || !estoque) {
-                showStatus('status-cadastro', 'Por favor, preencha todos os campos!', 'error');
+                showStatus('status-cadastro', 'Preencha todos os campos!', 'error');
                 return;
             }
             
-            // Verificar se código já existe
-            if (produtos.some(p => p.codigo === codigo)) {
-                showStatus('status-cadastro', 'Código já existe! Use outro código.', 'error');
-                return;
-            }
+            // Cria um ID único
+            const produtoId = Date.now().toString();
             
-            try {
-                const produto = {
-                    codigo,
-                    nome,
-                    preco,
-                    estoque,
-                    categoria,
-                    dataCadastro: new Date().toISOString(),
-                    vendas: 0,
-                    estoqueAtual: estoque
-                };
-                
-                // SALVA NO FIREBASE (coleção "produtos")
-                await addDoc(collection(db, "produtos"), produto);
-                
-                showStatus('status-cadastro', '✅ Produto cadastrado com sucesso!', 'success');
-                
-                // Limpar formulário
+            // Salva no Realtime Database
+            produtosRef.child(produtoId).set({
+                id: produtoId,
+                codigo: codigo,
+                nome: nome,
+                preco: preco,
+                estoque: estoque,
+                estoqueAtual: estoque,
+                vendas: 0,
+                dataCadastro: new Date().toISOString()
+            })
+            .then(() => {
+                showStatus('status-cadastro', '✅ Produto cadastrado!', 'success');
+                // Limpar campos
                 document.getElementById('codigo').value = '';
                 document.getElementById('nome').value = '';
                 document.getElementById('preco').value = '';
                 document.getElementById('estoque').value = '';
-                
-            } catch (error) {
-                showStatus('status-cadastro', '❌ Erro ao cadastrar: ' + error.message, 'error');
-            }
+            })
+            .catch((error) => {
+                showStatus('status-cadastro', '❌ Erro: ' + error.message, 'error');
+            });
         };
 
-        // ========== FUNÇÃO: REGISTRAR VENDA ==========
-        window.registrarVenda = async function() {
-            const produtoSelect = document.getElementById('produtoVenda');
+        // FUNÇÃO: Registrar Venda
+        window.registrarVenda = function() {
+            const produtoSelect = document.getElementById('produtoSelect');
             const produtoId = produtoSelect.value;
             const quantidade = parseInt(document.getElementById('quantidade').value);
             const cliente = document.getElementById('cliente').value.trim();
-            const formaPagamento = document.getElementById('formaPagamento').value;
             
             if (!produtoId || !cliente || !quantidade) {
                 showStatus('status-venda', 'Preencha todos os campos!', 'error');
                 return;
             }
             
-            const produto = produtos.find(p => p.id === produtoId);
-            if (!produto) {
-                showStatus('status-venda', 'Produto não encontrado!', 'error');
-                return;
-            }
-            
-            if (quantidade > produto.estoqueAtual) {
-                showStatus('status-venda', `Estoque insuficiente! Disponível: ${produto.estoqueAtual}`, 'error');
-                return;
-            }
-            
-            try {
-                // Registrar venda
-                const venda = {
-                    produtoId,
+            // Busca dados do produto
+            produtosRef.child(produtoId).once('value')
+            .then((snapshot) => {
+                const produto = snapshot.val();
+                if (!produto) {
+                    showStatus('status-venda', 'Produto não encontrado!', 'error');
+                    return;
+                }
+                
+                if (quantidade > produto.estoqueAtual) {
+                    showStatus('status-venda', `Estoque insuficiente! Disponível: ${produto.estoqueAtual}`, 'error');
+                    return;
+                }
+                
+                // Cria ID único para venda
+                const vendaId = Date.now().toString();
+                const valorTotal = produto.preco * quantidade;
+                
+                // Registra a venda
+                vendasRef.child(vendaId).set({
+                    id: vendaId,
+                    produtoId: produtoId,
                     produtoCodigo: produto.codigo,
                     produtoNome: produto.nome,
-                    quantidade,
+                    quantidade: quantidade,
                     valorUnitario: produto.preco,
-                    valorTotal: produto.preco * quantidade,
-                    cliente,
-                    formaPagamento,
-                    dataVenda: serverTimestamp(),
-                    dataVendaLocal: new Date().toISOString()
-                };
-                
-                // SALVA NO FIREBASE (coleção "vendas")
-                await addDoc(collection(db, "vendas"), venda);
-                
-                // Atualizar estoque do produto
-                const produtoRef = doc(db, "produtos", produtoId);
-                await updateDoc(produtoRef, {
-                    estoqueAtual: increment(-quantidade),
-                    vendas: increment(quantidade)
+                    valorTotal: valorTotal,
+                    cliente: cliente,
+                    dataVenda: new Date().toISOString(),
+                    timestamp: Date.now()
+                })
+                .then(() => {
+                    // Atualiza estoque do produto
+                    const novoEstoque = produto.estoqueAtual - quantidade;
+                    const totalVendas = (produto.vendas || 0) + quantidade;
+                    
+                    return produtosRef.child(produtoId).update({
+                        estoqueAtual: novoEstoque,
+                        vendas: totalVendas
+                    });
+                })
+                .then(() => {
+                    showStatus('status-venda', '✅ Venda registrada!', 'success');
+                    document.getElementById('cliente').value = '';
+                    document.getElementById('quantidade').value = '1';
+                })
+                .catch((error) => {
+                    showStatus('status-venda', '❌ Erro: ' + error.message, 'error');
                 });
-                
-                showStatus('status-venda', '✅ Venda registrada com sucesso!', 'success');
-                document.getElementById('cliente').value = '';
-                document.getElementById('quantidade').value = '1';
-                
-            } catch (error) {
-                showStatus('status-venda', '❌ Erro ao registrar venda: ' + error.message, 'error');
-            }
+            });
         };
 
-        // ========== FUNÇÕES DO DASHBOARD ==========
-        window.filtrarHoje = () => filtroAtual = 'hoje';
-        window.filtrarSemana = () => filtroAtual = 'semana';
-        window.filtrarMes = () => filtroAtual = 'mes';
-        window.filtrarTodos = () => filtroAtual = 'todos';
-
-        // ========== FUNÇÕES AUXILIARES ==========
+        // FUNÇÃO: Mostrar status
         function showStatus(elementId, message, type) {
             const element = document.getElementById(elementId);
             element.textContent = message;
@@ -531,101 +244,101 @@
             setTimeout(() => element.textContent = '', 3000);
         }
 
+        // FUNÇÃO: Formatar moeda
         function formatCurrency(value) {
             return 'R$ ' + parseFloat(value).toFixed(2).replace('.', ',');
         }
 
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR').substring(0, 5);
-        }
-
-        // ========== CARREGAR DADOS EM TEMPO REAL ==========
+        // ========== ESCUTAR DADOS EM TEMPO REAL ==========
+        
         // Escutar produtos
-        onSnapshot(collection(db, "produtos"), (snapshot) => {
-            produtos = [];
-            const listaProdutos = document.getElementById('lista-produtos');
-            const selectProdutos = document.getElementById('produtoVenda');
+        produtosRef.on('value', (snapshot) => {
+            const produtos = snapshot.val() || {};
+            const lista = document.getElementById('lista-produtos');
+            const select = document.getElementById('produtoSelect');
             
-            listaProdutos.innerHTML = '';
-            selectProdutos.innerHTML = '<option value="">Selecione um produto</option>';
+            lista.innerHTML = '';
+            select.innerHTML = '<option value="">Selecione um produto</option>';
             
-            snapshot.forEach((doc) => {
-                const produto = { id: doc.id, ...doc.data() };
-                produtos.push(produto);
+            let totalProdutos = 0;
+            Object.entries(produtos).forEach(([id, produto]) => {
+                totalProdutos++;
                 
-                // Adicionar à lista visual
-                const item = document.createElement('div');
-                item.className = 'item';
-                item.innerHTML = `
-                    <span class="item-codigo">${produto.codigo}</span>
-                    <span class="item-nome">${produto.nome}</span>
-                    <span class="item-preco">${formatCurrency(produto.preco)}</span>
-                    <span style="color: ${produto.estoqueAtual < 10 ? 'red' : 'green'}">
-                        Estoque: ${produto.estoqueAtual}
-                    </span>
+                // Adicionar à lista
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                    <strong>${produto.codigo}</strong>: ${produto.nome} 
+                    - ${formatCurrency(produto.preco)} 
+                    (Estoque: ${produto.estoqueAtual})
                 `;
-                listaProdutos.appendChild(item);
+                lista.appendChild(div);
                 
-                // Adicionar ao select de vendas (se tiver estoque)
+                // Adicionar ao select (apenas com estoque)
                 if (produto.estoqueAtual > 0) {
                     const option = document.createElement('option');
-                    option.value = produto.id;
-                    option.textContent = `${produto.codigo} - ${produto.nome} (Estoque: ${produto.estoqueAtual})`;
-                    selectProdutos.appendChild(option);
+                    option.value = id;
+                    option.textContent = `${produto.codigo} - ${produto.nome} (${produto.estoqueAtual} disponíveis)`;
+                    select.appendChild(option);
                 }
             });
             
-            // Atualizar dashboard
-            document.getElementById('total-produtos').textContent = produtos.length;
+            document.getElementById('total-produtos').textContent = totalProdutos;
             
-            if (snapshot.empty) {
-                listaProdutos.innerHTML = '<div class="loading">Nenhum produto cadastrado ainda.</div>';
+            if (totalProdutos === 0) {
+                lista.innerHTML = '<div>Nenhum produto cadastrado</div>';
             }
         });
 
-        // Escutar vendas e atualizar dashboard
-        onSnapshot(collection(db, "vendas"), (snapshot) => {
-            const listaVendas = document.getElementById('lista-vendas');
-            const hoje = new Date().toLocaleDateString('pt-BR');
+        // Escutar vendas e calcular dashboard
+        vendasRef.on('value', (snapshot) => {
+            const vendas = snapshot.val() || {};
+            const lista = document.getElementById('lista-vendas');
+            const hoje = new Date().toDateString();
+            
+            lista.innerHTML = '';
+            
             let totalVendas = 0;
             let faturamento = 0;
             let vendasHoje = 0;
-            const vendasPorProduto = {};
+            const produtosVendidos = {};
             
-            listaVendas.innerHTML = '';
+            // Ordenar por data (mais recentes primeiro)
+            const vendasArray = Object.values(vendas);
+            vendasArray.sort((a, b) => b.timestamp - a.timestamp);
             
-            snapshot.forEach((doc) => {
-                const venda = { id: doc.id, ...doc.data() };
+            // Processar vendas
+            vendasArray.forEach((venda, index) => {
                 totalVendas++;
                 faturamento += venda.valorTotal || 0;
                 
-                // Verificar se venda é de hoje
-                if (venda.dataVendaLocal && venda.dataVendaLocal.includes(new Date().toISOString().split('T')[0])) {
+                // Verificar se é hoje
+                const dataVenda = new Date(venda.dataVenda).toDateString();
+                if (dataVenda === hoje) {
                     vendasHoje += venda.quantidade || 1;
                 }
                 
                 // Contar por produto
                 if (venda.produtoCodigo) {
-                    vendasPorProduto[venda.produtoCodigo] = 
-                        (vendasPorProduto[venda.produtoCodigo] || 0) + (venda.quantidade || 1);
+                    produtosVendidos[venda.produtoCodigo] = 
+                        (produtosVendidos[venda.produtoCodigo] || 0) + (venda.quantidade || 1);
                 }
                 
-                // Adicionar à lista (apenas últimas 5)
-                if (totalVendas <= 5) {
-                    const item = document.createElement('div');
-                    item.className = 'item';
-                    item.innerHTML = `
+                // Mostrar apenas 5 últimas
+                if (index < 5) {
+                    const div = document.createElement('div');
+                    div.className = 'item';
+                    div.innerHTML = `
                         <div>
-                            <strong>${venda.produtoNome || 'Produto'}</strong><br>
-                            <small>${venda.cliente || 'Cliente'} - ${formatDate(venda.dataVendaLocal || new Date())}</small>
+                            <strong>${venda.produtoNome}</strong><br>
+                            <small>${venda.cliente} - ${new Date(venda.dataVenda).toLocaleDateString()}</small>
                         </div>
                         <div style="text-align: right;">
-                            <strong>${venda.quantidade}x</strong><br>
-                            <span style="color: #4CAF50">${formatCurrency(venda.valorTotal || 0)}</span>
+                            ${venda.quantidade}x<br>
+                            <strong>${formatCurrency(venda.valorTotal)}</strong>
                         </div>
                     `;
-                    listaVendas.appendChild(item);
+                    lista.appendChild(div);
                 }
             });
             
@@ -634,37 +347,32 @@
             document.getElementById('faturamento').textContent = formatCurrency(faturamento);
             document.getElementById('vendas-hoje').textContent = vendasHoje;
             
-            // Top produtos
-            const topProdutosDiv = document.getElementById('top-produtos');
-            const top5 = Object.entries(vendasPorProduto)
+            // Top produtos vendidos
+            const topDiv = document.getElementById('top-produtos');
+            topDiv.innerHTML = '';
+            
+            const topArray = Object.entries(produtosVendidos)
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 5);
             
-            topProdutosDiv.innerHTML = '';
-            top5.forEach(([codigo, qtd], index) => {
-                const produto = produtos.find(p => p.codigo === codigo);
-                const item = document.createElement('div');
-                item.className = 'item';
-                item.innerHTML = `
-                    <span style="font-weight: bold; color: #667eea;">${index + 1}º</span>
-                    <span style="flex-grow: 1; margin: 0 10px;">${produto?.nome || codigo}</span>
-                    <span style="color: #4CAF50; font-weight: bold;">${qtd} vendas</span>
+            topArray.forEach(([codigo, quantidade], index) => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                    ${index + 1}º - ${codigo}: <strong>${quantidade} vendas</strong>
                 `;
-                topProdutosDiv.appendChild(item);
+                topDiv.appendChild(div);
             });
             
-            if (top5.length === 0) {
-                topProdutosDiv.innerHTML = '<div class="loading">Nenhuma venda registrada ainda.</div>';
-            }
-            
-            if (snapshot.empty) {
-                listaVendas.innerHTML = '<div class="loading">Nenhuma venda registrada ainda.</div>';
+            if (totalVendas === 0) {
+                lista.innerHTML = '<div>Nenhuma venda registrada</div>';
+                topDiv.innerHTML = '<div>Nenhuma venda registrada</div>';
             }
         });
 
-        // Mostrar que o sistema está carregado
+        // Mostrar que está conectado
         setTimeout(() => {
-            showStatus('status-cadastro', '✅ Sistema conectado ao Firebase!', 'success');
+            showStatus('status-cadastro', '✅ Conectado ao Firebase!', 'success');
         }, 1000);
     </script>
 </body>
