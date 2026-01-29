@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Sistema Vendas - PERMISSÃO CORRIGIDA</title>
+    <title>Sistema Vendas - CORRETO AGORA</title>
     <meta charset="UTF-8">
     <style>
         body { font-family: Arial; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
@@ -22,7 +22,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🔓 SISTEMA COM PERMISSÃO LIBERADA</h1>
+        <h1>🔓 SISTEMA FUNCIONANDO</h1>
         
         <div class="box">
             <h2>➕ CADASTRAR PRODUTO</h2>
@@ -58,9 +58,9 @@
         </div>
     </div>
 
-    <!-- SÓ ESTAS DUAS BIBLIOTECAS -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- VERSÃO 8.10.0 DO FIREBASE (MAIS ESTÁVEL) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
     <script>
         // CONFIGURAÇÃO DO SEU FIREBASE
@@ -74,22 +74,21 @@
             appId: "1:547092721941:web:b0feaefe7d6265c32bf91c"
         };
 
-        // INICIALIZAR FIREBASE
-        try {
-            const app = firebase.initializeApp(firebaseConfig);
-            const database = firebase.database();
-            console.log("✅ Firebase conectado com sucesso!");
-            
-            // Testar conexão
-            database.ref('.info/connected').on('value', (snap) => {
-                if (snap.val() === true) {
-                    showStatus('status1', '✅ CONECTADO AO FIREBASE! Pode começar.', 'success');
-                }
-            });
-        } catch (error) {
-            console.error("❌ Erro ao conectar:", error);
-            alert("Erro ao conectar ao Firebase: " + error.message);
-        }
+        // INICIALIZAR FIREBASE - SIMPLES E DIRETO
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        console.log("🔥 Firebase inicializado!");
+        console.log("📡 Database URL:", firebaseConfig.databaseURL);
+        
+        // Testar conexão
+        database.ref('.info/connected').on('value', function(snapshot) {
+            if (snapshot.val() === true) {
+                console.log("✅ CONECTADO AO FIREBASE!");
+                document.getElementById('status1').innerHTML = '✅ CONECTADO! Pode cadastrar produtos.';
+                document.getElementById('status1').className = 'status success';
+            }
+        });
 
         // ========== FUNÇÕES PRINCIPAIS ==========
         
@@ -101,7 +100,8 @@
             const estoque = document.getElementById('estoque').value;
             
             if (!codigo || !nome || !preco || !estoque) {
-                showStatus('status1', '❌ Preencha todos os campos!', 'error');
+                document.getElementById('status1').innerHTML = '❌ Preencha todos os campos!';
+                document.getElementById('status1').className = 'status error';
                 return;
             }
             
@@ -116,19 +116,25 @@
                 dataCadastro: new Date().toISOString()
             };
             
+            console.log("Salvando produto:", produtoData);
+            
             // SALVAR NO FIREBASE
             database.ref('produtos/' + produtoId).set(produtoData)
-                .then(() => {
-                    showStatus('status1', '✅ Produto salvo com sucesso! ID: ' + produtoId, 'success');
+                .then(function() {
+                    console.log("✅ Produto salvo com ID:", produtoId);
+                    document.getElementById('status1').innerHTML = '✅ Produto salvo com sucesso!';
+                    document.getElementById('status1').className = 'status success';
+                    
                     // Limpar campos
                     document.getElementById('codigo').value = '';
                     document.getElementById('nome').value = '';
                     document.getElementById('preco').value = '';
                     document.getElementById('estoque').value = '';
                 })
-                .catch((error) => {
-                    showStatus('status1', '❌ Erro ao salvar: ' + error.message, 'error');
-                    console.error("Erro detalhado:", error);
+                .catch(function(error) {
+                    console.error("❌ Erro ao salvar:", error);
+                    document.getElementById('status1').innerHTML = '❌ Erro: ' + error.message;
+                    document.getElementById('status1').className = 'status error';
                 });
         };
         
@@ -139,18 +145,21 @@
             const cliente = document.getElementById('cliente').value.trim();
             
             if (!produtoId || !quantidade || !cliente) {
-                showStatus('status2', '❌ Preencha todos os campos!', 'error');
+                document.getElementById('status2').innerHTML = '❌ Preencha todos os campos!';
+                document.getElementById('status2').className = 'status error';
                 return;
             }
             
             // Buscar produto
             database.ref('produtos/' + produtoId).once('value')
-                .then((snapshot) => {
+                .then(function(snapshot) {
                     const produto = snapshot.val();
-                    if (!produto) throw new Error('Produto não encontrado');
+                    if (!produto) {
+                        throw new Error('Produto não encontrado');
+                    }
                     
                     if (quantidade > produto.estoqueAtual) {
-                        throw new Error(`Estoque insuficiente! Disponível: ${produto.estoqueAtual}`);
+                        throw new Error('Estoque insuficiente! Disponível: ' + produto.estoqueAtual);
                     }
                     
                     // Criar venda
@@ -170,7 +179,7 @@
                     
                     // Salvar venda
                     return database.ref('vendas/' + vendaId).set(vendaData)
-                        .then(() => {
+                        .then(function() {
                             // Atualizar estoque
                             const novoEstoque = produto.estoqueAtual - quantidade;
                             return database.ref('produtos/' + produtoId).update({
@@ -178,28 +187,23 @@
                             });
                         });
                 })
-                .then(() => {
-                    showStatus('status2', '✅ Venda registrada com sucesso!', 'success');
+                .then(function() {
+                    document.getElementById('status2').innerHTML = '✅ Venda registrada com sucesso!';
+                    document.getElementById('status2').className = 'status success';
                     document.getElementById('cliente').value = '';
                     document.getElementById('quantidade').value = '1';
                 })
-                .catch((error) => {
-                    showStatus('status2', '❌ Erro: ' + error.message, 'error');
+                .catch(function(error) {
+                    console.error("Erro:", error);
+                    document.getElementById('status2').innerHTML = '❌ Erro: ' + error.message;
+                    document.getElementById('status2').className = 'status error';
                 });
         };
-        
-        // 3. FUNÇÃO DE STATUS
-        function showStatus(elementId, message, type) {
-            const element = document.getElementById(elementId);
-            element.textContent = message;
-            element.className = 'status ' + type;
-            setTimeout(() => element.textContent = '', 4000);
-        }
         
         // ========== CARREGAR DADOS EM TEMPO REAL ==========
         
         // Carregar produtos
-        database.ref('produtos').on('value', (snapshot) => {
+        database.ref('produtos').on('value', function(snapshot) {
             const produtos = snapshot.val() || {};
             const lista = document.getElementById('produtosLista');
             const select = document.getElementById('produtoSelect');
@@ -207,23 +211,25 @@
             lista.innerHTML = '';
             select.innerHTML = '<option value="">Selecione um produto</option>';
             
-            Object.entries(produtos).forEach(([id, produto]) => {
+            for (let id in produtos) {
+                const produto = produtos[id];
+                
                 // Adicionar à lista
                 const item = document.createElement('div');
                 item.style.padding = '8px';
                 item.style.borderBottom = '1px solid #eee';
-                item.innerHTML = `📦 <strong>${produto.codigo}</strong> - ${produto.nome}<br>
-                                 💰 R$ ${produto.preco} | 📊 Estoque: ${produto.estoqueAtual}`;
+                item.innerHTML = '📦 <strong>' + produto.codigo + '</strong> - ' + produto.nome + '<br>' +
+                                '💰 R$ ' + produto.preco + ' | 📊 Estoque: ' + produto.estoqueAtual;
                 lista.appendChild(item);
                 
                 // Adicionar ao select (se tiver estoque)
                 if (produto.estoqueAtual > 0) {
                     const option = document.createElement('option');
                     option.value = id;
-                    option.textContent = `${produto.codigo} - ${produto.nome} (Estoque: ${produto.estoqueAtual})`;
+                    option.textContent = produto.codigo + ' - ' + produto.nome + ' (Estoque: ' + produto.estoqueAtual + ')';
                     select.appendChild(option);
                 }
-            });
+            }
             
             if (Object.keys(produtos).length === 0) {
                 lista.innerHTML = '<div style="text-align: center; color: #666;">Nenhum produto cadastrado ainda.</div>';
@@ -231,39 +237,47 @@
         });
         
         // Carregar vendas
-        database.ref('vendas').on('value', (snapshot) => {
+        database.ref('vendas').on('value', function(snapshot) {
             const vendas = snapshot.val() || {};
             const lista = document.getElementById('vendasLista');
             
             lista.innerHTML = '';
             
-            // Ordenar por data (mais recente primeiro)
-            const vendasArray = Object.values(vendas);
-            vendasArray.sort((a, b) => b.timestamp - a.timestamp);
+            // Converter para array e ordenar por data
+            const vendasArray = [];
+            for (let id in vendas) {
+                vendasArray.push(vendas[id]);
+            }
+            vendasArray.sort(function(a, b) {
+                return b.timestamp - a.timestamp;
+            });
             
             // Mostrar últimas 5
-            vendasArray.slice(0, 5).forEach(venda => {
+            for (let i = 0; i < Math.min(5, vendasArray.length); i++) {
+                const venda = vendasArray[i];
                 const item = document.createElement('div');
                 item.style.padding = '8px';
                 item.style.borderBottom = '1px solid #eee';
-                item.innerHTML = `💰 <strong>${venda.produtoNome}</strong><br>
-                                 👤 ${venda.cliente} | 📦 ${venda.quantidade}x | 💰 R$ ${venda.valorTotal}<br>
-                                 <small>${new Date(venda.dataVenda).toLocaleString()}</small>`;
+                item.innerHTML = '💰 <strong>' + venda.produtoNome + '</strong><br>' +
+                                '👤 ' + venda.cliente + ' | 📦 ' + venda.quantidade + 'x | 💰 R$ ' + venda.valorTotal + '<br>' +
+                                '<small>' + new Date(venda.dataVenda).toLocaleString() + '</small>';
                 lista.appendChild(item);
-            });
+            }
             
             if (vendasArray.length === 0) {
                 lista.innerHTML = '<div style="text-align: center; color: #666;">Nenhuma venda registrada ainda.</div>';
             }
         });
         
-        // Verificar se tem permissão
-        setTimeout(() => {
-            database.ref('teste').set({teste: Date.now()})
-                .then(() => console.log("✅ Permissões estão OK!"))
-                .catch(error => {
+        // Teste inicial
+        setTimeout(function() {
+            database.ref('teste').set({teste: 'conexao_ok', time: new Date().toISOString()})
+                .then(function() {
+                    console.log("✅ Teste de permissão: OK");
+                })
+                .catch(function(error) {
                     console.error("❌ Erro de permissão:", error);
-                    showStatus('status1', '⚠️ Configure as regras do Firebase (veja instruções)', 'error');
+                    alert("ERRO DE PERMISSÃO: Configure as regras do Firebase!\n\n1. Acesse: console.firebase.google.com\n2. Vá em: Realtime Database → Regras\n3. Cole: {\"rules\": {\".read\": true, \".write\": true}}\n4. Clique: PUBLICAR");
                 });
         }, 1000);
     </script>
