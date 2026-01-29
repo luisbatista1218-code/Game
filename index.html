@@ -3,405 +3,669 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIMULADOR FODA - Tudo em um arquivo</title>
+    <title>Sistema de Vendas - Firebase</title>
     <style>
-        /* ZERA TUDO */
-        * { margin: 0; padding: 0; border: 0; box-sizing: border-box; }
-        html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
-        
-        /* CANVAS OCUPA TUDO */
-        #game { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100vw; 
-            height: 100vh; 
-            z-index: 1; 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
-        /* CONTROLES GRANDES PRA CELULAR */
-        .btn { 
-            position: fixed; 
-            width: 80px; 
-            height: 80px; 
-            background: rgba(255,255,255,0.2); 
-            border: 3px solid rgba(255,255,255,0.5); 
-            border-radius: 50%; 
-            color: white; 
-            font-size: 32px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            z-index: 100; 
-            user-select: none; 
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
         }
-        #esq { bottom: 100px; left: 30px; }
-        #dir { bottom: 100px; right: 30px; }
-        #acel { bottom: 30px; right: 120px; background: rgba(0,255,0,0.3); }
-        #freio { bottom: 30px; right: 30px; background: rgba(255,0,0,0.3); }
         
-        /* INFOS NA TELA */
-        #info {
-            position: fixed;
-            top: 20px;
-            left: 20px;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
+        }
+        
+        .sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        h2 {
+            color: #444;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        h2::before {
+            content: '';
+            display: inline-block;
+            width: 10px;
+            height: 30px;
+            background: #667eea;
+            border-radius: 5px;
+        }
+        
+        .cadastro h2::before { background: #4CAF50; }
+        .vendas h2::before { background: #2196F3; }
+        .dashboard h2::before { background: #FF9800; }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            font-family: Arial;
-            background: rgba(0,0,0,0.7);
-            padding: 15px;
+            border: none;
+            padding: 15px 30px;
             border-radius: 10px;
-            border: 2px solid #0f0;
-            z-index: 100;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-top: 5px solid #667eea;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .lista {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .item:last-child {
+            border-bottom: none;
+        }
+        
+        .item-codigo {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .item-nome {
+            flex-grow: 1;
+            margin: 0 15px;
+        }
+        
+        .item-preco {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .sections {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
 <body>
-    <!-- O JOGO VAI AQUI -->
-    <canvas id="game"></canvas>
-    
-    <!-- CONTROLES -->
-    <div class="btn" id="esq">←</div>
-    <div class="btn" id="dir">→</div>
-    <div class="btn" id="acel">↑</div>
-    <div class="btn" id="freio">↓</div>
-    
-    <!-- INFORMAÇÕES -->
-    <div id="info">
-        <div>🚗 SIMULADOR 3D</div>
-        <div>VEL: <span id="vel">0</span> km/h</div>
-        <div style="color:#0f0">✅ GRÁFICOS ATIVOS</div>
+    <div class="container">
+        <header>
+            <h1>🏪 Sistema de Vendas Firebase</h1>
+            <p class="subtitle">Cadastro de produtos, registro de vendas e dashboard em tempo real</p>
+        </header>
+        
+        <div class="sections">
+            <!-- SEÇÃO 1: CADASTRO DE PRODUTOS -->
+            <div class="section cadastro">
+                <h2>➕ Cadastrar Produto</h2>
+                <div class="form-group">
+                    <label for="codigo">Código do Produto:</label>
+                    <input type="text" id="codigo" placeholder="Ex: PROD001" maxlength="10">
+                </div>
+                
+                <div class="form-group">
+                    <label for="nome">Nome do Produto:</label>
+                    <input type="text" id="nome" placeholder="Ex: Camiseta Básica">
+                </div>
+                
+                <div class="form-group">
+                    <label for="preco">Preço (R$):</label>
+                    <input type="number" id="preco" placeholder="Ex: 29.90" step="0.01" min="0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="estoque">Quantidade em Estoque:</label>
+                    <input type="number" id="estoque" placeholder="Ex: 100" min="0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="categoria">Categoria:</label>
+                    <select id="categoria">
+                        <option value="Roupas">Roupas</option>
+                        <option value="Eletrônicos">Eletrônicos</option>
+                        <option value="Alimentos">Alimentos</option>
+                        <option value="Bebidas">Bebidas</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+                
+                <button onclick="cadastrarProduto()">📦 Salvar Produto no Banco</button>
+                <div id="status-cadastro" class="status"></div>
+                
+                <h3 style="margin-top: 30px;">📋 Produtos Cadastrados</h3>
+                <div class="lista" id="lista-produtos">
+                    <div class="loading">Carregando produtos...</div>
+                </div>
+            </div>
+            
+            <!-- SEÇÃO 2: REGISTRO DE VENDAS -->
+            <div class="section vendas">
+                <h2>💰 Registrar Venda</h2>
+                
+                <div class="form-group">
+                    <label for="produtoVenda">Selecione o Produto:</label>
+                    <select id="produtoVenda">
+                        <option value="">Carregando produtos...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="quantidade">Quantidade Vendida:</label>
+                    <input type="number" id="quantidade" placeholder="Ex: 2" min="1" value="1">
+                </div>
+                
+                <div class="form-group">
+                    <label for="cliente">Nome do Cliente:</label>
+                    <input type="text" id="cliente" placeholder="Ex: João Silva">
+                </div>
+                
+                <div class="form-group">
+                    <label for="formaPagamento">Forma de Pagamento:</label>
+                    <select id="formaPagamento">
+                        <option value="Dinheiro">Dinheiro</option>
+                        <option value="Cartão Débito">Cartão Débito</option>
+                        <option value="Cartão Crédito">Cartão Crédito</option>
+                        <option value="PIX">PIX</option>
+                    </select>
+                </div>
+                
+                <button onclick="registrarVenda()">💳 Registrar Venda no Banco</button>
+                <div id="status-venda" class="status"></div>
+                
+                <h3 style="margin-top: 30px;">🛒 Últimas Vendas</h3>
+                <div class="lista" id="lista-vendas">
+                    <div class="loading">Carregando vendas...</div>
+                </div>
+            </div>
+            
+            <!-- SEÇÃO 3: DASHBOARD -->
+            <div class="section dashboard">
+                <h2>📊 Dashboard em Tempo Real</h2>
+                
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total de Produtos</div>
+                        <div class="stat-value" id="total-produtos">0</div>
+                        <div class="stat-label">cadastrados</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Total de Vendas</div>
+                        <div class="stat-value" id="total-vendas">0</div>
+                        <div class="stat-label">realizadas</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Faturamento Total</div>
+                        <div class="stat-value" id="faturamento">R$ 0</div>
+                        <div class="stat-label">acumulado</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Venda Hoje</div>
+                        <div class="stat-value" id="vendas-hoje">0</div>
+                        <div class="stat-label">unidades</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <h3>📈 Produtos Mais Vendidos</h3>
+                    <div id="top-produtos" class="lista">
+                        <div class="loading">Analisando dados...</div>
+                    </div>
+                </div>
+                
+                <div class="filters">
+                    <button onclick="filtrarHoje()" style="background: #4CAF50;">Hoje</button>
+                    <button onclick="filtrarSemana()" style="background: #2196F3;">Esta Semana</button>
+                    <button onclick="filtrarMes()" style="background: #FF9800;">Este Mês</button>
+                    <button onclick="filtrarTodos()" style="background: #9C27B0;">Todos</button>
+                </div>
+            </div>
+        </div>
+        
+        <footer style="text-align: center; margin-top: 40px; color: #666; padding-top: 20px; border-top: 1px solid #eee;">
+            <p>🔥 Sistema conectado ao Firebase | 📊 Dados em tempo real | 🚀 Hospedado no GitHub/Vercel</p>
+        </footer>
     </div>
 
-    <script>
-        // ============================================
-        // TUDO AQUI DENTRO - SEM DEPENDÊNCIAS EXTERNAS
-        // ============================================
-        
-        console.log("🔥 INICIANDO SIMULADOR FODA");
-        
-        // 1. TRIPA DO THREE.JS EMBUTIDA (mini versão)
-        const ThreeJS = {
-            // Matrizes e vetores básicos
-            Vector3: class { constructor(x=0,y=0,z=0) { this.x=x; this.y=y; this.z=z; } },
-            Matrix4: class { constructor() { this.elements = new Float32Array(16); } },
-            
-            // Cena simples
-            Scene: class { 
-                constructor() { 
-                    this.children = []; 
-                    this.background = null; 
-                } 
-                add(obj) { this.children.push(obj); }
-            },
-            
-            // Câmera
-            PerspectiveCamera: class {
-                constructor(fov=75, aspect=1, near=0.1, far=1000) {
-                    this.fov = fov;
-                    this.aspect = aspect;
-                    this.near = near;
-                    this.far = far;
-                    this.position = { x:0, y:5, z:10 };
-                    this.rotation = { x:0, y:0, z:0 };
-                    this.updateProjectionMatrix = () => {};
-                }
-            },
-            
-            // Renderizador WebGL PURO (sem three.js)
-            WebGLRenderer: class {
-                constructor(config) {
-                    this.canvas = config.canvas;
-                    this.gl = this.canvas.getContext('webgl2') || this.canvas.getContext('webgl');
-                    this.setSize(window.innerWidth, window.innerHeight);
-                    
-                    // Shader básico de vértices
-                    this.vertexShader = `
-                        attribute vec3 position;
-                        attribute vec3 color;
-                        varying vec3 vColor;
-                        uniform mat4 modelViewMatrix;
-                        uniform mat4 projectionMatrix;
-                        void main() {
-                            vColor = color;
-                            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                        }
-                    `;
-                    
-                    // Shader básico de fragmentos
-                    this.fragmentShader = `
-                        precision mediump float;
-                        varying vec3 vColor;
-                        void main() {
-                            gl_FragColor = vec4(vColor, 1.0);
-                        }
-                    `;
-                    
-                    // Compilar shaders
-                    this.program = this.createProgram(this.vertexShader, this.fragmentShader);
-                    this.gl.useProgram(this.program);
-                    
-                    // Configurar WebGL básico
-                    this.gl.clearColor(0.0, 0.5, 1.0, 1.0); // Céu azul
-                    this.gl.enable(this.gl.DEPTH_TEST);
-                }
-                
-                createProgram(vs, fs) {
-                    const program = this.gl.createProgram();
-                    const vertexShader = this.createShader(this.gl.VERTEX_SHADER, vs);
-                    const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, fs);
-                    
-                    this.gl.attachShader(program, vertexShader);
-                    this.gl.attachShader(program, fragmentShader);
-                    this.gl.linkProgram(program);
-                    
-                    return program;
-                }
-                
-                createShader(type, source) {
-                    const shader = this.gl.createShader(type);
-                    this.gl.shaderSource(shader, source);
-                    this.gl.compileShader(shader);
-                    return shader;
-                }
-                
-                setSize(w, h) {
-                    this.canvas.width = w;
-                    this.canvas.height = h;
-                    this.gl.viewport(0, 0, w, h);
-                }
-                
-                render(scene, camera) {
-                    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-                    // Aqui renderizaria os objetos
-                }
-            }
+    <!-- FIREBASE SDK -->
+    <script type="module">
+        // SUAS CONFIGURAÇÕES DO FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyDhxzoRmrYhuIwKkFtlF_H36NklLwVXSN0",
+            authDomain: "deliveryapp-a6c48.firebaseapp.com",
+            databaseURL: "https://deliveryapp-a6c48-default-rtdb.firebaseio.com",
+            projectId: "deliveryapp-a6c48",
+            storageBucket: "deliveryapp-a6c48.firebasestorage.app",
+            messagingSenderId: "547092721941",
+            appId: "1:547092721941:web:b0feaefe7d6265c32bf91c"
         };
-        
-        // 2. CRIAR CUBO 3D SIMPLES (prova que WebGL funciona)
-        function criarCubo() {
-            const canvas = document.getElementById('game');
-            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+
+        // Importar Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            onSnapshot,
+            query,
+            orderBy,
+            where,
+            serverTimestamp,
+            updateDoc,
+            doc,
+            increment
+        } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Variáveis globais
+        let produtos = [];
+        let filtroAtual = 'todos';
+
+        // ========== FUNÇÃO: CADASTRAR PRODUTO ==========
+        window.cadastrarProduto = async function() {
+            const codigo = document.getElementById('codigo').value.trim();
+            const nome = document.getElementById('nome').value.trim();
+            const preco = parseFloat(document.getElementById('preco').value);
+            const estoque = parseInt(document.getElementById('estoque').value);
+            const categoria = document.getElementById('categoria').value;
             
-            if (!gl) {
-                alert("SEU CELULAR NÃO SUPORTA WEBGL! Usa Chrome, porra.");
+            // Validação
+            if (!codigo || !nome || !preco || !estoque) {
+                showStatus('status-cadastro', 'Por favor, preencha todos os campos!', 'error');
                 return;
             }
             
-            // Configuração básica WebGL
-            gl.viewport(0, 0, canvas.width, canvas.height);
-            gl.clearColor(0.0, 0.5, 1.0, 1.0); // Céu azul
-            gl.enable(gl.DEPTH_TEST);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            
-            // SHADERS EM STRING (tudo dentro do HTML)
-            const vsSource = `
-                attribute vec4 aVertexPosition;
-                attribute vec4 aVertexColor;
-                uniform mat4 uModelViewMatrix;
-                uniform mat4 uProjectionMatrix;
-                varying lowp vec4 vColor;
-                void main(void) {
-                    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-                    vColor = aVertexColor;
-                }
-            `;
-            
-            const fsSource = `
-                varying lowp vec4 vColor;
-                void main(void) {
-                    gl_FragColor = vColor;
-                }
-            `;
-            
-            // Compilar shaders
-            const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-            gl.shaderSource(vertexShader, vsSource);
-            gl.compileShader(vertexShader);
-            
-            const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-            gl.shaderSource(fragmentShader, fsSource);
-            gl.compileShader(fragmentShader);
-            
-            const shaderProgram = gl.createProgram();
-            gl.attachShader(shaderProgram, vertexShader);
-            gl.attachShader(shaderProgram, fragmentShader);
-            gl.linkProgram(shaderProgram);
-            
-            // Posições do cubo (8 vértices)
-            const vertices = [
-                // Frente
-                -1.0, -1.0,  1.0,
-                 1.0, -1.0,  1.0,
-                 1.0,  1.0,  1.0,
-                -1.0,  1.0,  1.0,
-                // Trás
-                -1.0, -1.0, -1.0,
-                -1.0,  1.0, -1.0,
-                 1.0,  1.0, -1.0,
-                 1.0, -1.0, -1.0,
-            ];
-            
-            // Cores (RGB)
-            const colors = [
-                1.0, 0.0, 0.0, 1.0,    // Vermelho
-                0.0, 1.0, 0.0, 1.0,    // Verde
-                0.0, 0.0, 1.0, 1.0,    // Azul
-                1.0, 1.0, 0.0, 1.0,    // Amarelo
-                1.0, 0.0, 1.0, 1.0,    // Magenta
-                0.0, 1.0, 1.0, 1.0,    // Ciano
-                1.0, 0.5, 0.0, 1.0,    // Laranja
-                0.5, 0.0, 1.0, 1.0,    // Roxo
-            ];
-            
-            // Índices (12 triângulos)
-            const indices = [
-                0, 1, 2,  0, 2, 3,    // Frente
-                4, 5, 6,  4, 6, 7,    // Trás
-                4, 0, 3,  4, 3, 5,    // Esquerda
-                1, 7, 6,  1, 6, 2,    // Direita
-                3, 2, 6,  3, 6, 5,    // Topo
-                4, 7, 1,  4, 1, 0,    // Fundo
-            ];
-            
-            // Buffers
-            const vertexBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-            
-            const colorBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-            
-            const indexBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-            
-            // Matriz de projeção
-            const projectionMatrix = new Float32Array(16);
-            const fov = 45 * Math.PI / 180;
-            const aspect = canvas.width / canvas.height;
-            const zNear = 0.1;
-            const zFar = 100.0;
-            
-            // Matriz de projeção perspectiva
-            const f = 1.0 / Math.tan(fov / 2);
-            projectionMatrix[0] = f / aspect;
-            projectionMatrix[5] = f;
-            projectionMatrix[10] = (zFar + zNear) / (zNear - zFar);
-            projectionMatrix[11] = -1;
-            projectionMatrix[14] = (2 * zFar * zNear) / (zNear - zFar);
-            
-            // Matriz de modelo/visão
-            const modelViewMatrix = new Float32Array(16);
-            
-            // ANIMAÇÃO DO CUBO
-            let rotation = 0;
-            
-            function render() {
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-                
-                rotation += 0.01;
-                
-                // Matriz de rotação
-                modelViewMatrix[0] = Math.cos(rotation);
-                modelViewMatrix[2] = Math.sin(rotation);
-                modelViewMatrix[8] = -Math.sin(rotation);
-                modelViewMatrix[10] = Math.cos(rotation);
-                modelViewMatrix[5] = 1;
-                modelViewMatrix[15] = 1;
-                
-                // Translação (afasta o cubo)
-                modelViewMatrix[14] = -6;
-                
-                // Usar programa
-                gl.useProgram(shaderProgram);
-                
-                // Atributos
-                const positionAttrib = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
-                gl.enableVertexAttribArray(positionAttrib);
-                gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-                gl.vertexAttribPointer(positionAttrib, 3, gl.FLOAT, false, 0, 0);
-                
-                const colorAttrib = gl.getAttribLocation(shaderProgram, 'aVertexColor');
-                gl.enableVertexAttribArray(colorAttrib);
-                gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-                gl.vertexAttribPointer(colorAttrib, 4, gl.FLOAT, false, 0, 0);
-                
-                // Uniformes
-                const projMatrixLoc = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
-                gl.uniformMatrix4fv(projMatrixLoc, false, projectionMatrix);
-                
-                const mvMatrixLoc = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix');
-                gl.uniformMatrix4fv(mvMatrixLoc, false, modelViewMatrix);
-                
-                // Desenhar
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-                gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
-                
-                requestAnimationFrame(render);
+            // Verificar se código já existe
+            if (produtos.some(p => p.codigo === codigo)) {
+                showStatus('status-cadastro', 'Código já existe! Use outro código.', 'error');
+                return;
             }
             
-            // INICIAR
-            render();
-            console.log("✅ WEBGL FUNCIONANDO - Cubo 3D girando!");
-            document.getElementById('info').innerHTML += "<div style='color:#0f0'>🎮 CONTROLES ATIVOS</div>";
+            try {
+                const produto = {
+                    codigo,
+                    nome,
+                    preco,
+                    estoque,
+                    categoria,
+                    dataCadastro: new Date().toISOString(),
+                    vendas: 0,
+                    estoqueAtual: estoque
+                };
+                
+                // SALVA NO FIREBASE (coleção "produtos")
+                await addDoc(collection(db, "produtos"), produto);
+                
+                showStatus('status-cadastro', '✅ Produto cadastrado com sucesso!', 'success');
+                
+                // Limpar formulário
+                document.getElementById('codigo').value = '';
+                document.getElementById('nome').value = '';
+                document.getElementById('preco').value = '';
+                document.getElementById('estoque').value = '';
+                
+            } catch (error) {
+                showStatus('status-cadastro', '❌ Erro ao cadastrar: ' + error.message, 'error');
+            }
+        };
+
+        // ========== FUNÇÃO: REGISTRAR VENDA ==========
+        window.registrarVenda = async function() {
+            const produtoSelect = document.getElementById('produtoVenda');
+            const produtoId = produtoSelect.value;
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+            const cliente = document.getElementById('cliente').value.trim();
+            const formaPagamento = document.getElementById('formaPagamento').value;
+            
+            if (!produtoId || !cliente || !quantidade) {
+                showStatus('status-venda', 'Preencha todos os campos!', 'error');
+                return;
+            }
+            
+            const produto = produtos.find(p => p.id === produtoId);
+            if (!produto) {
+                showStatus('status-venda', 'Produto não encontrado!', 'error');
+                return;
+            }
+            
+            if (quantidade > produto.estoqueAtual) {
+                showStatus('status-venda', `Estoque insuficiente! Disponível: ${produto.estoqueAtual}`, 'error');
+                return;
+            }
+            
+            try {
+                // Registrar venda
+                const venda = {
+                    produtoId,
+                    produtoCodigo: produto.codigo,
+                    produtoNome: produto.nome,
+                    quantidade,
+                    valorUnitario: produto.preco,
+                    valorTotal: produto.preco * quantidade,
+                    cliente,
+                    formaPagamento,
+                    dataVenda: serverTimestamp(),
+                    dataVendaLocal: new Date().toISOString()
+                };
+                
+                // SALVA NO FIREBASE (coleção "vendas")
+                await addDoc(collection(db, "vendas"), venda);
+                
+                // Atualizar estoque do produto
+                const produtoRef = doc(db, "produtos", produtoId);
+                await updateDoc(produtoRef, {
+                    estoqueAtual: increment(-quantidade),
+                    vendas: increment(quantidade)
+                });
+                
+                showStatus('status-venda', '✅ Venda registrada com sucesso!', 'success');
+                document.getElementById('cliente').value = '';
+                document.getElementById('quantidade').value = '1';
+                
+            } catch (error) {
+                showStatus('status-venda', '❌ Erro ao registrar venda: ' + error.message, 'error');
+            }
+        };
+
+        // ========== FUNÇÕES DO DASHBOARD ==========
+        window.filtrarHoje = () => filtroAtual = 'hoje';
+        window.filtrarSemana = () => filtroAtual = 'semana';
+        window.filtrarMes = () => filtroAtual = 'mes';
+        window.filtrarTodos = () => filtroAtual = 'todos';
+
+        // ========== FUNÇÕES AUXILIARES ==========
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+            setTimeout(() => element.textContent = '', 3000);
         }
-        
-        // 3. CONTROLES SIMPLES (só pra testar)
-        let velocidade = 0;
-        let acelerando = false;
-        
-        document.getElementById('acel').addEventListener('touchstart', () => {
-            acelerando = true;
-            document.getElementById('acel').style.background = 'rgba(0,255,0,0.6)';
-        });
-        
-        document.getElementById('acel').addEventListener('touchend', () => {
-            acelerando = false;
-            document.getElementById('acel').style.background = 'rgba(0,255,0,0.3)';
-        });
-        
-        // Atualizar velocidade
-        setInterval(() => {
-            if (acelerando) {
-                velocidade += 1;
-                if (velocidade > 200) velocidade = 200;
-            } else {
-                velocidade *= 0.95;
-            }
-            document.getElementById('vel').textContent = Math.floor(velocidade);
-        }, 100);
-        
-        // 4. INICIAR TUDO QUANDO CARREGAR
-        window.addEventListener('load', () => {
-            console.log("📱 CELULAR PRONTO");
-            criarCubo();
+
+        function formatCurrency(value) {
+            return 'R$ ' + parseFloat(value).toFixed(2).replace('.', ',');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR').substring(0, 5);
+        }
+
+        // ========== CARREGAR DADOS EM TEMPO REAL ==========
+        // Escutar produtos
+        onSnapshot(collection(db, "produtos"), (snapshot) => {
+            produtos = [];
+            const listaProdutos = document.getElementById('lista-produtos');
+            const selectProdutos = document.getElementById('produtoVenda');
             
-            // Tamanho correto do canvas
-            const canvas = document.getElementById('game');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            listaProdutos.innerHTML = '';
+            selectProdutos.innerHTML = '<option value="">Selecione um produto</option>';
             
-            // Evento de resize
-            window.addEventListener('resize', () => {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
+            snapshot.forEach((doc) => {
+                const produto = { id: doc.id, ...doc.data() };
+                produtos.push(produto);
+                
+                // Adicionar à lista visual
+                const item = document.createElement('div');
+                item.className = 'item';
+                item.innerHTML = `
+                    <span class="item-codigo">${produto.codigo}</span>
+                    <span class="item-nome">${produto.nome}</span>
+                    <span class="item-preco">${formatCurrency(produto.preco)}</span>
+                    <span style="color: ${produto.estoqueAtual < 10 ? 'red' : 'green'}">
+                        Estoque: ${produto.estoqueAtual}
+                    </span>
+                `;
+                listaProdutos.appendChild(item);
+                
+                // Adicionar ao select de vendas (se tiver estoque)
+                if (produto.estoqueAtual > 0) {
+                    const option = document.createElement('option');
+                    option.value = produto.id;
+                    option.textContent = `${produto.codigo} - ${produto.nome} (Estoque: ${produto.estoqueAtual})`;
+                    selectProdutos.appendChild(option);
+                }
             });
+            
+            // Atualizar dashboard
+            document.getElementById('total-produtos').textContent = produtos.length;
+            
+            if (snapshot.empty) {
+                listaProdutos.innerHTML = '<div class="loading">Nenhum produto cadastrado ainda.</div>';
+            }
         });
-        
-        // 5. DETECTAR ERROS
-        window.addEventListener('error', (e) => {
-            console.error("ERRO:", e.message);
-            document.getElementById('info').innerHTML = 
-                `<div style='color:red'>❌ ERRO: ${e.message}</div>` +
-                `<div>Tenta no Chrome, porra</div>`;
+
+        // Escutar vendas e atualizar dashboard
+        onSnapshot(collection(db, "vendas"), (snapshot) => {
+            const listaVendas = document.getElementById('lista-vendas');
+            const hoje = new Date().toLocaleDateString('pt-BR');
+            let totalVendas = 0;
+            let faturamento = 0;
+            let vendasHoje = 0;
+            const vendasPorProduto = {};
+            
+            listaVendas.innerHTML = '';
+            
+            snapshot.forEach((doc) => {
+                const venda = { id: doc.id, ...doc.data() };
+                totalVendas++;
+                faturamento += venda.valorTotal || 0;
+                
+                // Verificar se venda é de hoje
+                if (venda.dataVendaLocal && venda.dataVendaLocal.includes(new Date().toISOString().split('T')[0])) {
+                    vendasHoje += venda.quantidade || 1;
+                }
+                
+                // Contar por produto
+                if (venda.produtoCodigo) {
+                    vendasPorProduto[venda.produtoCodigo] = 
+                        (vendasPorProduto[venda.produtoCodigo] || 0) + (venda.quantidade || 1);
+                }
+                
+                // Adicionar à lista (apenas últimas 5)
+                if (totalVendas <= 5) {
+                    const item = document.createElement('div');
+                    item.className = 'item';
+                    item.innerHTML = `
+                        <div>
+                            <strong>${venda.produtoNome || 'Produto'}</strong><br>
+                            <small>${venda.cliente || 'Cliente'} - ${formatDate(venda.dataVendaLocal || new Date())}</small>
+                        </div>
+                        <div style="text-align: right;">
+                            <strong>${venda.quantidade}x</strong><br>
+                            <span style="color: #4CAF50">${formatCurrency(venda.valorTotal || 0)}</span>
+                        </div>
+                    `;
+                    listaVendas.appendChild(item);
+                }
+            });
+            
+            // Atualizar dashboard
+            document.getElementById('total-vendas').textContent = totalVendas;
+            document.getElementById('faturamento').textContent = formatCurrency(faturamento);
+            document.getElementById('vendas-hoje').textContent = vendasHoje;
+            
+            // Top produtos
+            const topProdutosDiv = document.getElementById('top-produtos');
+            const top5 = Object.entries(vendasPorProduto)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            
+            topProdutosDiv.innerHTML = '';
+            top5.forEach(([codigo, qtd], index) => {
+                const produto = produtos.find(p => p.codigo === codigo);
+                const item = document.createElement('div');
+                item.className = 'item';
+                item.innerHTML = `
+                    <span style="font-weight: bold; color: #667eea;">${index + 1}º</span>
+                    <span style="flex-grow: 1; margin: 0 10px;">${produto?.nome || codigo}</span>
+                    <span style="color: #4CAF50; font-weight: bold;">${qtd} vendas</span>
+                `;
+                topProdutosDiv.appendChild(item);
+            });
+            
+            if (top5.length === 0) {
+                topProdutosDiv.innerHTML = '<div class="loading">Nenhuma venda registrada ainda.</div>';
+            }
+            
+            if (snapshot.empty) {
+                listaVendas.innerHTML = '<div class="loading">Nenhuma venda registrada ainda.</div>';
+            }
         });
-        
-        // LOG INICIAL
-        console.log("🔥 SIMULADOR CARREGADO - Tudo em um HTML só");
-        console.log("👉 Se aparecer um cubo colorido girando, WEBGL funciona!");
-        console.log("👉 Use os botões grandes pra acelerar");
-        
+
+        // Mostrar que o sistema está carregado
+        setTimeout(() => {
+            showStatus('status-cadastro', '✅ Sistema conectado ao Firebase!', 'success');
+        }, 1000);
     </script>
 </body>
 </html>
