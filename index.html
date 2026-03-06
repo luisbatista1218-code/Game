@@ -488,7 +488,7 @@ function toggleListaGeral() {
   }
 }
 // 🟢 FUNÇÃO 1: Carregar profissionais nos toggles
-async function carregarProfissionaisToggle() {
+/*async function carregarProfissionaisToggle() {
   const container = document.getElementById('profissionaisToggleContainer');
   if (!container) return;
   
@@ -586,7 +586,7 @@ function carregarSelectProfissionaisConcluido() {
 }
 
 // 🟢 FUNÇÃO 5: Carregar agendamentos por profissional para concluído
-/*async function carregarAgendamentosPorProfissionalConcluido() {
+async function carregarAgendamentosPorProfissionalConcluido() {
   const selectProf = document.getElementById('selectProfissionalConcluido');
   const selectAg = document.getElementById('selectAgendamentoConcluido');
   const profissional = selectProf.value;
@@ -644,7 +644,7 @@ function carregarSelectProfissionaisConcluido() {
       document.getElementById('detalhesAgendamentoConcluido').style.display = 'none';
     }
   });
-}*/
+}
 
 // 🟢 FUNÇÃO 6: Marcar concluído por profissional
 async function marcarConcluidoPorProfissional() {
