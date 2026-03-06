@@ -177,138 +177,143 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   </div>
   
   <div class="admin-container" id="telaAdmin">
-    <button class="voltar-btn" onclick="sairAdmin()">← Sair do ADM</button>
-    <h2 class="titulo-secao">⚙️ Área Administrativa</h2>
-    
-    <div style="margin-bottom: 30px;">
-  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-    <h3 style="color: #475569; font-size: 18px; margin: 0;">📋 Agendamentos por Profissional</h3>
-  </div>
+  <button class="voltar-btn" onclick="sairAdmin()">← Sair do ADM</button>
+  <h2 class="titulo-secao">⚙️ Área Administrativa</h2>
   
-  <!-- SELECT DE PROFISSIONAIS (PRIMEIRO NÍVEL) -->
-  <select class="form-input" id="selectProfissionalFiltro" style="margin-bottom: 15px;" onchange="filtrarAgendamentosPorProfissional()">
-    <option value="">Todos os profissionais</option>
-  </select>
-  
-  <!-- CONTAINER DOS PROFISSIONAIS COM TOGGLE -->
-  <div id="profissionaisToggleContainer"></div>
-  
-  <!-- LISTA DE TODOS AGENDAMENTOS (MANTIDA PARA REFERÊNCIA) -->
-  <div style="margin-top: 20px;">
+  <!-- PARTE 1: AGENDAMENTOS POR PROFISSIONAL -->
+  <div style="margin-bottom: 30px; background: white; border-radius: 12px; padding: 20px; border: 2px solid #e2e8f0;">
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-      <h3 style="color: #475569; font-size: 18px; margin: 0;">📋 Todos Agendamentos</h3>
-      <span onclick="toggleListaGeral()" style="cursor: pointer; font-size: 22px; color: #3b82f6; font-weight: bold;" id="trianguloGeral">▼</span>
-    </div>
-    <div class="lista-agendamentos-admin" id="todosAgendamentos" style="display: block;">
-      <div class="loading"><div class="loading-spinner"></div>Carregando...</div>
-    </div>
-  </div>
-</div>
-  
-    <div class="form-admin">
-  <h3 style="color: #475569; margin-bottom: 20px;">✅ Marcar como Concluído</h3>
-  <div class="grid-admin">
-    <div class="form-group">
-      <label class="form-label">Profissional</label>
-      <select class="form-input" id="selectProfissionalConcluido" onchange="carregarAgendamentosPorProfissionalConcluido()">
-        <option value="">Selecione um profissional</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Agendamento</label>
-      <select class="form-input" id="selectAgendamentoConcluido">
-        <option value="">Primeiro selecione o profissional</option>
-      </select>
-    </div>
-  </div>
-  <div id="detalhesAgendamentoConcluido" style="display: none; background: #f0f9ff; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-      <div><strong>Cliente:</strong> <span id="detNomeConcluido">-</span></div>
-      <div><strong>Telefone:</strong> <span id="detTelefoneConcluido">-</span></div>
-      <div><strong>Serviço:</strong> <span id="detServicoConcluido">-</span></div>
-      <div><strong>Profissional:</strong> <span id="detProfissionalConcluido">-</span></div>
-      <div><strong>Horário:</strong> <span id="detHorarioConcluido">-</span></div>
-      <div><strong>Código:</strong> <span id="detCodigoConcluido">-</span></div>
-    </div>
-  </div>
-  <button class="btn-admin" onclick="marcarConcluidoPorProfissional()" style="background: #10b981;">✔️ Marcar como Concluído</button>
-</div>
-    
-    <div class="cadastro-servico">
-      <h3 style="color: #475569; margin-bottom: 20px;">📈 Gerenciar Serviços</h3>
-      <div class="grid-servico">
-  <div class="form-group">
-    <label class="form-label">Serviço</label>
-    <input type="text" class="form-input" id="editarServicoNome" placeholder="Nome do serviço">
-  </div>
-  <div class="form-group">
-    <label class="form-label">Preço (R$)</label>
-    <input type="number" class="form-input" id="editarServicoPreco" placeholder="30.00" step="0.01">
-  </div>
-  <div class="form-group">
-    <label class="form-label">Profissional</label>
-    <div style="display: flex; gap: 5px;">
-      <input type="text" class="form-input" id="editarServicoProfissional" placeholder="Digite ou selecione" style="flex: 2;">
-      <select class="form-input" id="selectProfissionalServico" style="flex: 1;" onchange="preencherProfissionalServico()">
-        <option value="">Selecione</option>
-      </select>
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="form-label">Descrição</label>
-    <input type="text" class="form-input" id="editarServicoDescricao" placeholder="Máx 40 caracteres" maxlength="40">
-  </div>
-  <div class="form-group">
-    <label class="form-label">Tempo (min)</label>
-    <select class="form-input" id="editarServicoTempo">
-      <option value="30">30</option>
-      <option value="45">45</option>
-      <option value="60">60</option>
-      <option value="90">90</option>
-    </select>
-  </div>
-</div> 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
-        <button class="btn-admin" onclick="adicionarServico()" style="background: #ec4899;">➕ Adicionar</button>
-        <button class="btn-admin" onclick="atualizarServico()" style="background: #3b82f6;">✏️ Atualizar</button>
-      </div>
-      <button class="btn-admin" onclick="excluirServico()" style="background: #ef4444; margin-top: 15px;">🗑️ Excluir Selecionado</button>
+      <h3 style="color: #475569; font-size: 18px; margin: 0;">📋 Agendamentos por Profissional</h3>
     </div>
     
-    <div class="config-horarios">
-      <div class="config-box">
-        <h3 style="color: #475569; margin-bottom: 15px;">🍽️ Horário de Almoço</h3>
-        <div class="form-group"><label class="form-label">Início</label><input type="time" class="form-input" id="almocoInicio" value="12:00"></div>
-        <div class="form-group"><label class="form-label">Fim</label><input type="time" class="form-input" id="almocoFim" value="13:00"></div>
-        <button class="btn-admin" onclick="salvarConfiguracao('almoco')" style="background: #f59e0b;">💾 Salvar Almoço</button>
-      </div>
-      <div class="config-box">
-  <h3 style="color: #475569; margin-bottom: 15px;">🏖️ Marcar Folga</h3>
-  <div class="form-group">
-    <label class="form-label">Data</label>
-    <input type="date" class="form-input" id="dataFolga">
-  </div>
-  <div class="form-group">
-    <label class="form-label">Profissional</label>
-    <select class="form-input" id="selectProfissionalFolga">
+    <select class="form-input" id="selectProfissionalFiltro" style="margin-bottom: 15px;" onchange="filtrarAgendamentosPorProfissional()">
       <option value="">Todos os profissionais</option>
     </select>
-  </div>
-  <div class="form-group">
-    <label class="form-label">Motivo</label>
-    <input type="text" class="form-input" id="motivoFolga" placeholder="Feriado, folga...">
-  </div> 
-  <div style="display: flex; gap: 10px;">
-    <button class="btn-admin" onclick="adicionarFolgaComProfissional()" style="background: #8b5cf6;">🏖️ Salvar Folga</button>
-    <button class="btn-admin" onclick="excluirFolgaPelaData()" style="background: #ef4444;">🗑️ Excluir</button>
-  </div>
-</div>
     
-    <div style="margin-top: 30px;">
-      <h3 style="color: #475569; margin-bottom: 15px; font-size: 18px;">📋 Serviços Cadastrados (Clique para editar)</h3>
-      <div id="listaServicosAdmin"><div class="loading"><div class="loading-spinner"></div>Carregando...</div></div>
+    <div id="profissionaisToggleContainer"></div>
+    
+    <div style="margin-top: 20px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+        <h3 style="color: #475569; font-size: 18px; margin: 0;">📋 Todos Agendamentos</h3>
+        <span onclick="toggleListaGeral()" style="cursor: pointer; font-size: 22px; color: #3b82f6; font-weight: bold;" id="trianguloGeral">▼</span>
+      </div>
+      <div class="lista-agendamentos-admin" id="todosAgendamentos" style="display: block;">
+        <div class="loading"><div class="loading-spinner"></div>Carregando...</div>
+      </div>
     </div>
   </div>
+  
+  <!-- PARTE 2: MARCAR COMO CONCLUÍDO -->
+  <div class="form-admin" style="margin-bottom: 30px;">
+    <h3 style="color: #475569; margin-bottom: 20px;">✅ Marcar como Concluído</h3>
+    <div class="grid-admin">
+      <div class="form-group">
+        <label class="form-label">Profissional</label>
+        <select class="form-input" id="selectProfissionalConcluido" onchange="carregarAgendamentosPorProfissionalConcluido()">
+          <option value="">Selecione um profissional</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Agendamento</label>
+        <select class="form-input" id="selectAgendamentoConcluido">
+          <option value="">Primeiro selecione o profissional</option>
+        </select>
+      </div>
+    </div>
+    <div id="detalhesAgendamentoConcluido" style="display: none; background: #f0f9ff; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div><strong>Cliente:</strong> <span id="detNomeConcluido">-</span></div>
+        <div><strong>Telefone:</strong> <span id="detTelefoneConcluido">-</span></div>
+        <div><strong>Serviço:</strong> <span id="detServicoConcluido">-</span></div>
+        <div><strong>Profissional:</strong> <span id="detProfissionalConcluido">-</span></div>
+        <div><strong>Horário:</strong> <span id="detHorarioConcluido">-</span></div>
+        <div><strong>Código:</strong> <span id="detCodigoConcluido">-</span></div>
+      </div>
+    </div>
+    <button class="btn-admin" onclick="marcarConcluidoPorProfissional()" style="background: #10b981;">✔️ Marcar como Concluído</button>
+  </div>
+  
+  <!-- PARTE 3: GERENCIAR SERVIÇOS -->
+  <div class="cadastro-servico" style="margin-bottom: 30px;">
+    <h3 style="color: #475569; margin-bottom: 20px;">📈 Gerenciar Serviços</h3>
+    <div class="grid-servico">
+      <div class="form-group">
+        <label class="form-label">Serviço</label>
+        <input type="text" class="form-input" id="editarServicoNome" placeholder="Nome do serviço">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Preço (R$)</label>
+        <input type="number" class="form-input" id="editarServicoPreco" placeholder="30.00" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Profissional</label>
+        <div style="display: flex; gap: 5px;">
+          <input type="text" class="form-input" id="editarServicoProfissional" placeholder="Digite ou selecione" style="flex: 2;">
+          <select class="form-input" id="selectProfissionalServico" style="flex: 1;" onchange="preencherProfissionalServico()">
+            <option value="">Selecione</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descrição</label>
+        <input type="text" class="form-input" id="editarServicoDescricao" placeholder="Máx 40 caracteres" maxlength="40">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tempo (min)</label>
+        <select class="form-input" id="editarServicoTempo">
+          <option value="30">30</option>
+          <option value="45">45</option>
+          <option value="60">60</option>
+          <option value="90">90</option>
+        </select>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+      <button class="btn-admin" onclick="adicionarServico()" style="background: #ec4899;">➕ Adicionar</button>
+      <button class="btn-admin" onclick="atualizarServico()" style="background: #3b82f6;">✏️ Atualizar</button>
+    </div>
+    <button class="btn-admin" onclick="excluirServico()" style="background: #ef4444; margin-top: 15px;">🗑️ Excluir Selecionado</button>
+  </div>
+  
+  <!-- PARTE 4: HORÁRIOS E FOLGAS -->
+  <div class="config-horarios" style="margin-bottom: 30px;">
+    <div class="config-box">
+      <h3 style="color: #475569; margin-bottom: 15px;">🍽️ Horário de Almoço</h3>
+      <div class="form-group"><label class="form-label">Início</label><input type="time" class="form-input" id="almocoInicio" value="12:00"></div>
+      <div class="form-group"><label class="form-label">Fim</label><input type="time" class="form-input" id="almocoFim" value="13:00"></div>
+      <button class="btn-admin" onclick="salvarConfiguracao('almoco')" style="background: #f59e0b;">💾 Salvar Almoço</button>
+    </div>
+    
+    <div class="config-box">
+      <h3 style="color: #475569; margin-bottom: 15px;">🏖️ Marcar Folga</h3>
+      <div class="form-group">
+        <label class="form-label">Data</label>
+        <input type="date" class="form-input" id="dataFolga">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Profissional</label>
+        <select class="form-input" id="selectProfissionalFolga">
+          <option value="">Todos os profissionais</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Motivo</label>
+        <input type="text" class="form-input" id="motivoFolga" placeholder="Feriado, folga...">
+      </div> 
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-admin" onclick="adicionarFolgaComProfissional()" style="background: #8b5cf6;">🏖️ Salvar Folga</button>
+        <button class="btn-admin" onclick="excluirFolgaPelaData()" style="background: #ef4444;">🗑️ Excluir</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- PARTE 5: LISTA DE SERVIÇOS (já existia) -->
+  <div style="margin-top: 30px;">
+    <h3 style="color: #475569; margin-bottom: 15px; font-size: 18px;">📋 Serviços Cadastrados (Clique para editar)</h3>
+    <div id="listaServicosAdmin"><div class="loading"><div class="loading-spinner"></div>Carregando...</div></div>
+  </div>
+  
+</div> <!-- FECHA admin-container -->
   
   <div class="pdf-container" id="telaPDF">
     <button class="voltar-btn" onclick="voltarInicio()">← Voltar</button>
