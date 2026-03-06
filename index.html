@@ -183,11 +183,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <!-- PARTE 1: AGENDAMENTOS POR PROFISSIONAL -->
   <div style="margin-bottom: 30px; background: white; border-radius: 12px; padding: 20px; border: 2px solid #e2e8f0;">
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-      <h3 style="color: #475569; font-size: 18px; margin: 0;">📋 Agendamentos por Profissional</h3>
+      <h3 style="color: #475569; font-size: 18px; margin: 0;">📋 Agendamentos</h3>
     </div>
     
     <select class="form-input" id="selectProfissionalFiltro" style="margin-bottom: 15px;" onchange="filtrarAgendamentosPorProfissional()">
-      <option value="">Todos os profissionais</option>
+      <option value="">Profissional</option>
     </select>
     
     <div id="profissionaisToggleContainer"></div>
@@ -210,13 +210,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <div class="form-group">
         <label class="form-label">Profissional</label>
         <select class="form-input" id="selectProfissionalConcluido" onchange="carregarAgendamentosPorProfissionalConcluido()">
-          <option value="">Selecione um profissional</option>
+          <option value="">selecione</option>
         </select>
       </div>
       <div class="form-group">
         <label class="form-label">Agendamento</label>
         <select class="form-input" id="selectAgendamentoConcluido">
-          <option value="">Primeiro selecione o profissional</option>
+          <option value="">selecione</option>
         </select>
       </div>
     </div>
@@ -250,7 +250,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <div style="display: flex; gap: 5px;">
           <input type="text" class="form-input" id="editarServicoProfissional" placeholder="Digite ou selecione" style="flex: 2;">
           <select class="form-input" id="selectProfissionalServico" style="flex: 1;" onchange="preencherProfissionalServico()">
-            <option value="">Selecione</option>
+            <option value=""></option>
           </select>
         </div>
       </div>
@@ -293,7 +293,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <div class="form-group">
         <label class="form-label">Profissional</label>
         <select class="form-input" id="selectProfissionalFolga">
-          <option value="">Todos os profissionais</option>
+          <option value="">selecione</option>
         </select>
       </div>
       <div class="form-group">
